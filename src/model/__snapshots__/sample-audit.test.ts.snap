@@ -1,0 +1,101 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`supplied-client audit > keeps every scenario valid, bounded, and reproducible 1`] = `
+[
+  {
+    "company": "BrightPath",
+    "incremental_modeled_value": {
+      "conservative": 195428,
+      "likely": 505863,
+      "upside": 949848,
+    },
+    "likely_winners": {
+      "conservative": 3,
+      "likely": 6,
+      "upside": 9,
+    },
+    "reliable_tests": {
+      "conservative": 28,
+      "likely": 29,
+      "upside": 31,
+    },
+    "traffic_supported_tests": 34,
+  },
+  {
+    "company": "Meridian",
+    "incremental_modeled_value": {
+      "conservative": 912915,
+      "likely": 1718019,
+      "upside": 2666663,
+    },
+    "likely_winners": {
+      "conservative": 6,
+      "likely": 9,
+      "upside": 13,
+    },
+    "reliable_tests": {
+      "conservative": 47,
+      "likely": 47,
+      "upside": 47,
+    },
+    "traffic_supported_tests": 52,
+  },
+  {
+    "company": "NovaDash",
+    "incremental_modeled_value": {
+      "conservative": 0,
+      "likely": 0,
+      "upside": 0,
+    },
+    "likely_winners": {
+      "conservative": 6,
+      "likely": 9,
+      "upside": 13,
+    },
+    "reliable_tests": {
+      "conservative": 47,
+      "likely": 47,
+      "upside": 47,
+    },
+    "traffic_supported_tests": 52,
+  },
+  {
+    "company": "Stackform",
+    "incremental_modeled_value": {
+      "conservative": 0,
+      "likely": 0,
+      "upside": 297831,
+    },
+    "likely_winners": {
+      "conservative": 0,
+      "likely": 0,
+      "upside": 2,
+    },
+    "reliable_tests": {
+      "conservative": 4,
+      "likely": 4,
+      "upside": 5,
+    },
+    "traffic_supported_tests": 5,
+  },
+  {
+    "company": "Thornfield & Co",
+    "incremental_modeled_value": {
+      "conservative": 932357,
+      "likely": 2770871,
+      "upside": 5094026,
+    },
+    "likely_winners": {
+      "conservative": 8,
+      "likely": 12,
+      "upside": 16,
+    },
+    "reliable_tests": {
+      "conservative": 47,
+      "likely": 47,
+      "upside": 47,
+    },
+    "traffic_supported_tests": 67,
+  },
+]
+`;
