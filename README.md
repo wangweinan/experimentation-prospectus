@@ -16,6 +16,15 @@ true ROI calculator. ROI requires program cost, and no cost input is provided.
 the click path, exact Thornfield calculation, design rationale, and likely
 questions.
 
+## Current artifacts
+
+- [Sample Thornfield prospectus PDF](docs/assets/thornfield-prospectus.pdf)
+- [Full planner capture](docs/assets/planner-full.png)
+
+![Experimentation planner overview](docs/assets/planner-overview.png)
+
+![Cumulative value trajectory](docs/assets/value-trajectory.png)
+
 ## Run locally
 
 Requires Node.js 20.19 or newer.
@@ -72,7 +81,7 @@ The primary form preserves the supplied JSON contract.
 | Visitors per day | `daily_visitors` | Total traffic available to a test |
 | Current conversion rate | `baseline_rate` | Current binary conversion rate |
 | How does this conversion create value? | `revenue_per_conversion` + UI context | Transparent value calculation; `0` means no dollar attribution |
-| Smallest lift worth detecting | `min_detectable_lift` | Relative lift to size for and the assumed effect of a winner |
+| Smallest lift worth detecting | `min_detectable_lift` | Relative lift used only to size the test |
 | Assumed lift when a test wins | UI assumption | Relative conversion increase after a winner; defaults to MDE but replaces rather than adds to it |
 
 ### Advanced planning assumptions
@@ -183,7 +192,8 @@ its standard quantiles in the test suite.
 - Different pages may run concurrently.
 - Launch opportunities are spaced evenly from the editable per-30-day limit.
 - When a launch slot opens, the planner selects the available page with the
-  greatest potential direct post-deployment value.
+  greatest potential post-deployment value: marginal joint-funnel value for a
+  linked stage or direct value for an independent page.
 - Ties and pages without direct value prefer shorter reliable tests, then stable
   page order.
 - Reporting cadence draws client readout checkpoints; it does not start or stop
@@ -226,9 +236,9 @@ total. These are not observed clients or historical paths.
 
 ### 4. Count conversion value
 
-A winner begins contributing only after its test completes. For each page, the
-engine integrates the difference between the compounded and original baseline
-over the remaining horizon:
+A winner begins contributing only after its test completes. For an independent
+page, the engine integrates the difference between the compounded and original
+baseline over the remaining horizon:
 
 ```text
 incremental conversions
@@ -248,9 +258,21 @@ Each shipped win multiplies the already-improved page conversion rate. Revenue
 therefore compounds as well: every later gain applies to the new baseline, and
 the model accrues the full cumulative improvement for the remaining days.
 
+For a linked stage, value is calculated from the change in the one joint
+terminal-value rate:
+
+```text
+daily funnel value
+  = entry traffic × product of current transition rates × terminal value
+
+page-attributed marginal value
+  = daily funnel value after this page's win
+    - daily funnel value before this page's win
+```
+
 The model does **not** infer:
 
-- dollars for pages whose supplied value is `0`
+- dollars for zero-value pages outside an enabled joint funnel
 - funnel relationships or transition rates that the user has not entered
 - subscription retention or lifetime value
 - sales-cycle cash timing
@@ -297,7 +319,9 @@ planner/
     model/            validation, test sizing, and simulation
     ui/               display formatting
   README.md
+  DEMO_WALKTHROUGH.md
   RESEARCH_LOG.md
+  docs/assets/          current screenshots + sample prospectus PDF
 ```
 
 The model is pure TypeScript and independent of React. There is no backend,
@@ -307,7 +331,7 @@ state library, chart library, LLM call, persistence layer, or PDF library.
 
 ### Sales tool
 
-The current static planner: editable assumptions, transparent math, sample
+The current browser planner: editable assumptions, transparent math, sample
 accounts, deterministic outputs, and printable prospectus.
 
 ### Proof of concept
@@ -318,8 +342,8 @@ analytics baselines. Validate forecast calibration against completed programs.
 
 ### Planning product
 
-Integrate experiment history, traffic forecasts, funnel/event definitions,
-guardrail metrics, deployment state, costs, and realized value. Add governed
+Integrate experiment history, traffic forecasts, calibrated funnel/event
+definitions, guardrail metrics, deployment state, costs, and realized value. Add governed
 scenario versioning, approvals, audit logs, monitoring, and forecast-vs-actual
 calibration. Consider sequential or Bayesian methods only with a matching
 decision policy and validation.
@@ -328,8 +352,9 @@ decision policy and validation.
 
 1. Open Thornfield and explain the likely tests, winners, page lift, and value.
 2. Change launch capacity or win rate and show the story move.
-3. Walk the experiment runway and readout checkpoints.
-4. Compare executable tests with the traffic-supported ceiling.
-5. Show NovaDash’s constrained pricing page and its measurable-lift guidance.
-6. Open the methodology, then summarize the research log and discarded options.
-7. Close with handled edge cases and the sales → PoC → product path.
+3. Show the joint funnel rates and one terminal value.
+4. Walk through the value range, page composition, runway, and readout checkpoints.
+5. Compare executable tests with the traffic-supported ceiling.
+6. Show NovaDash’s constrained pricing test and indirect Homepage contribution.
+7. Open the methodology, then summarize the research log and discarded options.
+8. Close with handled edge cases and the sales → PoC → product path.

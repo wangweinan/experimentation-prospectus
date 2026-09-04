@@ -261,11 +261,23 @@ at a 15% win rate have a greater than 50% chance of producing no winners.
 NovaDash’s pricing test remains underpowered, but its Homepage can now carry
 measured indirect value through the explicit Homepage → Pricing funnel.
 
+## Published artifacts
+
+Regenerated from the final 1,000-run joint-funnel build on 2026-09-04:
+
+- `docs/assets/planner-overview.png` — opening Thornfield view
+- `docs/assets/planner-full.png` — full long-form planner
+- `docs/assets/value-trajectory.png` — current range and page-composition chart
+- `docs/assets/thornfield-prospectus.pdf` — seven-page landscape Letter export
+
+All show the same default Thornfield result: 47 reliable tests, 12 likely wins,
+$12.0M / $21.4M / $31.9M Low/Likely/High value, and a $40.1M modeled baseline.
+
 ## AI and tool disclosure
 
 - GitHub Copilot CLI 1.0.80
 - GPT-5.6 Sol (`gpt-5.6-sol`)
-- Ponytail skill in full mode for YAGNI and minimal-dependency pressure
+- Ponytail skill in full, then ultra mode for YAGNI and minimal-dependency pressure
 - Frontend Design skill for visual direction and interaction quality
 - Clarify skill for non-technical labels, help text, and calculation tooltips
 - Colorize skill for the verified Coframe palette and accessible color roles
@@ -293,7 +305,7 @@ Before this becomes a planning system rather than a sales calculator:
 1. Define eligible experiment traffic instead of total page traffic.
 2. Calibrate win rate and effect distributions from Coframe’s completed tests.
 3. Represent idea supply, implementation effort, QA, and deployment lag.
-4. Connect page goals through an explicitly measured funnel.
+4. Calibrate funnel transition rates and validate page-attribution interactions.
 5. Add retention, margin, cash timing, program cost, and realized-value
    reconciliation before using ROI language.
 6. Version scenarios and assumptions with owners, approvals, and audit history.

@@ -22,7 +22,7 @@ nearly every important design decision:
 
 - high-traffic upstream pages;
 - a lower-traffic checkout;
-- direct value only at checkout;
+- terminal direct value only at Checkout, with upstream effects linked through the funnel;
 - a 14-day client reporting cadence;
 - a real execution constraint; and
 - a clean baseline close to the client’s stated $40M annual online revenue.
@@ -304,10 +304,11 @@ At each launch slot:
 2. deploy and compound any winner;
 3. exclude pages already running a test;
 4. exclude tests that cannot finish inside the horizon; and
-5. choose the available page with the largest direct post-deployment value
-   opportunity, breaking ties by shorter test duration and stable page order.
+5. choose the available page with the largest marginal post-deployment value
+   opportunity—joint terminal value for a linked stage, direct value otherwise—
+   breaking ties by shorter test duration and stable page order.
 
-The traffic ceiling removes step 5’s global launch limit but still allows only
+The traffic ceiling removes the global launch interval but still allows only
 one active test per page.
 
 ### Winner simulation
@@ -437,7 +438,7 @@ for each of 1,000 trial seeds:
         complete tests ending by launch_day
         apply and compound completed winners
         calculate the next valid test for each available page
-        choose the page with greatest direct value opportunity
+        choose the page with greatest marginal modeled value opportunity
         launch one test and draw winner/no-winner
 
     complete all tests ending by the horizon
@@ -700,8 +701,9 @@ making it the opening experience.
 ### No blended account conversion rate
 
 Homepage clicks, sign-ups, demos, and orders are different events and may share
-visitors. The planner keeps relative conversion lift page-level. It only
-aggregates compatible quantities: tests, winners, and supplied dollar value.
+visitors. The planner keeps relative conversion lift page-level. For enabled
+funnels, it calculates one terminal value from the product of stage transitions
+rather than summing those events as if they were interchangeable.
 
 ### No invented ROI
 
@@ -771,9 +773,9 @@ case has winners.
 ### “What is missing for production?”
 
 Eligible traffic, traffic forecasts, idea supply, implementation effort,
-deployment lag, funnel relationships, retention, margin, program cost, and
-forecast-vs-actual calibration. Those are production inputs, not values to
-invent in a sales prototype.
+deployment lag, calibrated funnel transitions and attribution, retention,
+margin, program cost, and forecast-vs-actual calibration. Those are production
+inputs, not values to invent in a sales prototype.
 
 ## Edge-case demo options
 
@@ -795,6 +797,12 @@ Use one if asked:
 > reproducible, and the AE can change the story live with the client.”
 
 ## Before presenting
+
+Use the current artifacts as a fallback:
+
+- [planner overview](docs/assets/planner-overview.png)
+- [value trajectory](docs/assets/value-trajectory.png)
+- [sample Thornfield PDF](docs/assets/thornfield-prospectus.pdf)
 
 ```bash
 npm install
