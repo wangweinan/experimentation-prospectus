@@ -73,7 +73,7 @@ The primary form preserves the supplied JSON contract.
 | Current conversion rate | `baseline_rate` | Current binary conversion rate |
 | How does this conversion create value? | `revenue_per_conversion` + UI context | Transparent value calculation; `0` means no dollar attribution |
 | Smallest lift worth detecting | `min_detectable_lift` | Relative lift to size for and the assumed effect of a winner |
-| Expected lift from each shipped win | UI assumption | Relative conversion increase after each winner; defaults to the detectable lift |
+| Assumed lift when a test wins | UI assumption | Relative conversion increase after a winner; defaults to MDE but replaces rather than adds to it |
 
 ### Advanced planning assumptions
 
@@ -166,7 +166,8 @@ records. The same inputs always yield the same result.
 
 - Each completed test wins independently at the supplied win rate.
 - A winner delivers the editable shipped-win lift, which defaults to the page’s
-  supplied MDE.
+  supplied MDE. It may be higher or lower. It is the entire modeled winner
+  effect—not an extra lift added on top of MDE.
 - Winners compound the page baseline.
 - Later tests are re-sized from that improved baseline.
 - A losing test is neutral.

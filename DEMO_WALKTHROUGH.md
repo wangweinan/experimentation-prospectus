@@ -105,21 +105,22 @@ Point to:
 - current conversion rate: `69%`;
 - smallest lift the test should detect: `3%`;
 - traffic check: about `15.4K visitors · 18 days`; and
-- expected lift from each shipped win: `3%`.
+- assumed lift when a test wins: `3%`.
 
 > “The first 3% is a statistical design choice: what is the smallest relative
 > improvement worth reliably detecting? It controls sample size.
 >
 > The second 3% is a business-effect assumption: how much does a shipped winner
 > improve conversion? It defaults to the MDE because that is what the brief
-> specifies, but it is separate and editable.”
+> specifies, but it is separate and editable. It replaces the MDE as the
+> modeled winner effect; 3% MDE plus 4% winner lift means a 4% impact, not 7%.”
 
-Change **Expected lift from each shipped win** from `3%` to `4%`.
+Change **Assumed lift when a test wins** from `3%` to `4%`.
 
 > “Test sizing does not change because MDE is still 3%. Page lift and dollars
 > increase because each shipped win is now assumed to deliver more.”
 
-Use **Match the detectable lift** to restore the default.
+Use **Reset winner lift to MDE** to restore the default.
 
 ### 5. Show transparent revenue inputs
 

@@ -592,9 +592,10 @@ export function Outlook({
           <div>
             <h3>Winner impact</h3>
             <p>
-              A winner improves the page by the separate shipped-win lift and
-              starts creating value after launch. It defaults to the detectable
-              lift, but can be edited. Every later win builds on the
+              A winner improves the page by the separate winner-lift assumption
+              and starts creating value after launch. It defaults to MDE, but
+              replaces MDE as the modeled effect rather than adding to it.
+              Every later win builds on the
               already-improved conversion rate, so conversion and revenue gains
               compound. Tests without a winner leave the page unchanged.
             </p>

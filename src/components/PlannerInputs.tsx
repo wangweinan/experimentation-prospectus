@@ -505,13 +505,13 @@ function PageEditor({
         />
         <NumberField
           id={`${page.id}-winner-lift`}
-          label="Expected lift from each shipped win"
+          label="Assumed lift when a test wins"
           value={page.expected_winner_lift * 100}
-          tooltip="This is separate from test sizing. After each winner ships, we raise the already-improved page rate by this relative amount, so conversion and revenue gains compound."
+          tooltip="MDE controls how many visitors the test needs. This separate value controls the impact after a winner ships. It replaces the MDE as the winner effect—it is not added to it—and each win compounds on the improved page."
           min={0.1}
           step={0.1}
           suffix="%"
-          help="Defaults to the detectable lift. Dollar impact is calculated automatically."
+          help="Defaults to MDE, but may be higher or lower. It is not added to MDE."
           error={issueFor(issues, `${path}.expected_winner_lift`)}
           onChange={(value) =>
             onChange(page.id, "expected_winner_lift", value / 100)
@@ -530,7 +530,7 @@ function PageEditor({
               )
             }
           >
-            Match the detectable lift
+            Reset winner lift to MDE
           </button>
         ) : null}
         {feasibility?.sizing ? (

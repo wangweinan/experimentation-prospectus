@@ -68,7 +68,7 @@ prospect.
 | Minimum runtime | Editable 14 days | Avoid one-day “reliable” tests on high-traffic pages |
 | Page concurrency | One active test per page; pages may overlap | Matches the README’s independent-page framing |
 | Winner impact | Deploy at completion and compound | Produces a chronological roadmap rather than annualized hand-waving |
-| Shipped-win lift | Separate editable conversion uplift, defaulting to MDE | Keeps test sizing distinct from expected business impact; revenue is derived |
+| Shipped-win lift | Separate editable conversion uplift, defaulting to MDE | Replaces rather than adds to MDE as the impact assumption; revenue is derived |
 | Path dependence | Re-size later tests after wins | Improved baselines alter future sample requirements |
 | Uncertainty engine | Seeded Monte Carlo, 10,000 paths | Exact binomial counts no longer hold when test count depends on earlier wins |
 | Dollar timing | Count only after deployment | Conservative and easy to explain |
