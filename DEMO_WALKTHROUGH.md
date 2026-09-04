@@ -293,27 +293,267 @@ one active test per page.
 
 ### Winner simulation
 
-For each of 10,000 seeded trials:
+The phrase “10,000 simulations” has a narrow, specific meaning here. The model
+does **not** simulate new traffic, new baseline rates, or a new effect size on
+every run. The only random event is whether each completed test produces a
+shippable winner.
+
+| Fixed inside a scenario | Random inside each simulation |
+| --- | --- |
+| Daily traffic | Winner vs. no winner for each completed test |
+| Starting conversion rate |  |
+| MDE and sample-size formula |  |
+| Shipped-winner lift |  |
+| Win-rate probability |  |
+| Value calculation |  |
+| Launch pace and scheduling policy |  |
+
+That makes the output conditional:
+
+> “If traffic, conversion, delivery pace, MDE, winner effect, and win rate
+> behave as entered, how much variation comes from the order in which tests
+> win?”
+
+It is not a forecast trained on 10,000 historical client-years.
+
+#### Reproducible pseudo-random draws
+
+The model creates one 32-bit base seed from the model-driving inputs using an
+FNV-1a hash. The seed includes:
+
+- horizon;
+- win rate;
+- confidence and power;
+- minimum test duration;
+- launches per 30 days; and
+- each page’s ID, traffic, baseline rate, and MDE.
+
+Reporting cadence, page labels, and explanatory copy are excluded because they
+do not change test outcomes. Dollar value and shipped-winner lift are also
+excluded from the random seed. They still change scheduling and value math, but
+keeping the same random number stream makes before/after scenario comparisons
+less noisy.
+
+For simulation index `i`, the code mixes:
 
 ```text
-winner ~ Bernoulli(program win rate)
+trial_seed = mix(base_seed, execution_mode_salt, i)
 ```
 
-If a test wins:
+That trial seed initializes a small deterministic `mulberry32` pseudo-random
+number generator. It produces numbers uniformly between `0` and `1`. This is a
+planning PRNG, not a security or cryptography primitive.
+
+For every launched test:
 
 ```text
-new page rate = current page rate × (1 + expected shipped-win lift)
+u = next random number in [0, 1)
+winner = u < program win rate
 ```
+
+At a 25% win rate, values below `0.25` become winners. The draw is stored with
+the test, but it has no effect until that test reaches its calculated end date.
+The scheduler never uses future winner information to choose the page.
+
+#### One execution simulation, step by step
+
+Each page starts with this state:
+
+```text
+current rate             = supplied baseline rate
+active test              = none
+completed tests          = 0
+shipped winners          = 0
+incremental conversions  = 0
+value events             = []
+```
+
+The global launch interval is:
+
+```text
+30 / launches per 30 days
+```
+
+For the default `4`, a launch opportunity arrives every `7.5` days.
+
+At each launch opportunity:
+
+1. **Finish due tests.** Process every active test whose end date is on or
+   before the current launch day.
+2. **Apply completed winners.** Accrue value through the completion day, then
+   multiply the page’s current conversion rate by
+   `1 + expected_winner_lift`.
+3. **Build the eligible page list.** Exclude a page when it already has a live
+   test, its next rate would reach 100%, or a newly launched test could not
+   finish inside the horizon.
+4. **Re-size from the current baseline.** Calculate sample size again after
+   earlier wins; the result is cached for identical page/rate combinations.
+5. **Prioritize candidates.** Rank each available page by:
+
+   ```text
+   daily visitors
+   × current conversion rate
+   × expected shipped-winner lift
+   × value per conversion
+   × days remaining after the test would finish
+   ```
+
+   Ties go to the shorter test, then the page’s stable input order.
+6. **Launch one test.** Store its start day, calculated end day, current
+   baseline, test number, and one winner/no-winner draw.
+
+The loop stops creating launches at the horizon. It never launches a partial
+test that would finish later merely to increase the count.
+
+Equivalent pseudocode:
+
+```text
+for each of 10,000 trial seeds:
+    initialize every page at its supplied baseline
+
+    for launch_day in 0, 7.5, 15, ... before horizon:
+        complete tests ending by launch_day
+        apply and compound completed winners
+        calculate the next valid test for each available page
+        choose the page with greatest direct value opportunity
+        launch one test and draw winner/no-winner
+
+    complete all tests ending by the horizon
+    accrue post-deployment conversion and value through the horizon
+    save tests, winners, page lifts, value, and checkpoint values
+```
+
+#### What happens when a test completes
+
+If a test does not win:
+
+```text
+current page rate stays unchanged
+deployed value added = 0
+```
+
+If it wins:
+
+```text
+new page rate
+  = current page rate × (1 + expected shipped-win lift)
+
+marginal value per day from this winner
+  = (new page rate - previous page rate)
+    × daily visitors
+    × value per conversion
+```
+
+The winner becomes a dated value event. At any later checkpoint:
+
+```text
+value from this winner
+  = marginal value per day
+    × max(0, checkpoint day - winner completion day)
+```
+
+Adding all winner events reconstructs the full compounded value curve. This is
+equivalent to integrating the difference between the current compounded rate
+and the original rate over time.
 
 The next test is sized from that new rate, so win order can change later test
 duration. That path dependence is why the planner simulates the complete
 planning horizon instead of applying a simple binomial interval to a fixed test
 count.
 
-For the chart, each simulated path also records cumulative value at day zero
-and every client readout checkpoint. At each day, the planner takes the 10th,
-50th, and 90th percentiles across the 10,000 values. The final chart values are
-therefore identical to the Low / Likely / High headline estimates.
+#### From 10,000 simulations to Low / Likely / High
+
+After all trials finish, each output metric is summarized separately:
+
+1. collect that metric from all 10,000 trials;
+2. sort the values from smallest to largest;
+3. select the observed value at the rounded percentile index; and
+4. report P10, P50, and P90.
+
+```text
+Low           = P10
+Likely        = P50
+High          = P90
+```
+
+This is done independently for test count, winner count, page lift, and value.
+The Low tests, Low winners, and Low value numbers are not guaranteed to come
+from one identical trial. They are marginal summaries of each output.
+
+#### How the value chart is built
+
+Each execution trial records cumulative value at:
+
+```text
+day 0
+every reporting checkpoint
+final horizon day
+```
+
+At each checkpoint, the model sorts the 10,000 cumulative values and selects
+P10, P50, and P90. Connecting those pointwise estimates creates the three
+lines. The P10–P90 area becomes the shaded planning band.
+
+The final chart values exactly match the Low / Likely / High headline value
+estimates because both use the same 10,000 trials and percentile rule.
+
+#### How the representative runway is selected
+
+The experiment runway and client readout strip need one internally consistent
+test-by-test path. A pointwise median chart is not one real trial, so the model
+does not use it as a schedule.
+
+Instead, it scores every trial by normalized distance from the three median
+headline metrics:
+
+```text
+distance =
+    abs(trial tests - median tests) / max(1, median tests)
+  + abs(trial winners - median winners) / max(1, median winners)
+  + abs(trial value - median value) / max(1, median value)
+```
+
+The closest trial becomes the representative runway. The code re-runs that
+trial from the same seed with timeline capture enabled. This guarantees that
+all bars, winner markers, and readout values belong to one possible internally
+consistent path.
+
+The representative trial may be close to, but not exactly equal to, every
+pointwise P50 chart value. That distinction is intentional:
+
+- **value chart:** distribution summary at each time;
+- **runway and readout strip:** one actual simulated trial near the medians.
+
+#### Traffic-ceiling simulation
+
+The planner runs a second set of 10,000 trials with a different deterministic
+mode salt. In ceiling mode:
+
+- there is no global launch interval;
+- every page starts at day zero;
+- each page starts its next test immediately when the previous test completes;
+- only one test may still run on a page at a time; and
+- the same winner, compounding, and sample-size rules apply.
+
+This isolates traffic-supported capacity from the execution-limited plan.
+
+#### What the simulation does not randomize
+
+The current version does not draw distributions for:
+
+- traffic growth or seasonality;
+- baseline-rate uncertainty;
+- different winner effect sizes;
+- uncertainty in the win-rate estimate;
+- negative treatment impact during losing tests;
+- implementation delay after a win;
+- retention, margin, or cash timing;
+- correlated test outcomes; or
+- cross-page visitor interference.
+
+Those are valid production extensions, but adding invented distributions would
+make a sales prototype look more rigorous while making its assumptions less
+defensible.
 
 ### Compounded conversion and value
 
