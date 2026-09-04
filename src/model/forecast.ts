@@ -16,10 +16,11 @@ import type {
   TestRecord,
   TestSizing,
   TrialResult,
+  ValueCompositionPoint,
   ValueTrajectoryPoint,
 } from "./types";
 
-export const DEFAULT_SIMULATION_RUNS = 10_000;
+export const DEFAULT_SIMULATION_RUNS = 1_000;
 
 const EXECUTION_SALT = 0x8f1bbcdc;
 const CEILING_SALT = 0x4a39b70d;
@@ -57,7 +58,9 @@ interface Candidate {
 interface SimulationBundle {
   summary: ForecastSummary;
   representative_timeline: TestRecord[];
+  representative_checkpoint_values: number[];
   value_trajectory: ValueTrajectoryPoint[];
+  value_composition: ValueCompositionPoint[];
 }
 
 function emptyRange(): Range {
@@ -94,6 +97,87 @@ function createPageStates(pages: PageInput[]): MutablePageState[] {
   }));
 }
 
+function funnelPageIds(scenario: ClientScenario): Set<string> {
+  return new Set(
+    scenario.funnel?.enabled
+      ? scenario.funnel.stages.map((stage) => stage.page_id)
+      : [],
+  );
+}
+
+function funnelValuePerDay(
+  scenario: ClientScenario,
+  states: MutablePageState[],
+  extraWinnerPageId?: string,
+): number {
+  const funnel = scenario.funnel;
+  if (!funnel?.enabled || funnel.stages.length === 0) {
+    return 0;
+  }
+
+  const stateById = new Map(states.map((state) => [state.input.id, state]));
+  const firstPage = stateById.get(funnel.stages[0].page_id)?.input;
+  const terminalPage = stateById.get(
+    funnel.stages[funnel.stages.length - 1].page_id,
+  )?.input;
+  if (!firstPage || !terminalPage) {
+    throw new Error("Funnel stages must reference modeled pages.");
+  }
+
+  const terminalEventsPerDay = funnel.stages.reduce(
+    (volume, stage) => {
+      const state = stateById.get(stage.page_id);
+      if (!state) {
+        throw new Error(`Missing funnel page "${stage.page_id}".`);
+      }
+      const winners =
+        state.winners + (stage.page_id === extraWinnerPageId ? 1 : 0);
+      const rate = Math.min(
+        1 - EPSILON,
+        stage.transition_rate *
+          (1 + state.input.expected_winner_lift) ** winners,
+      );
+      return volume * rate;
+    },
+    firstPage.daily_visitors,
+  );
+  return terminalEventsPerDay * valuePerConversion(terminalPage);
+}
+
+function valueAtDay(state: MutablePageState, day: number): number {
+  return state.value_events.reduce(
+    (total, event) =>
+      total + event.value_per_day * Math.max(0, day - event.day),
+    0,
+  );
+}
+
+function potentialValueForWinner(
+  scenario: ClientScenario,
+  states: MutablePageState[],
+  state: MutablePageState,
+  deploymentDay: number,
+): number {
+  const remainingDays = Math.max(
+    0,
+    scenario.program.horizon_days - deploymentDay,
+  );
+  if (funnelPageIds(scenario).has(state.input.id)) {
+    return (
+      (funnelValuePerDay(scenario, states, state.input.id) -
+        funnelValuePerDay(scenario, states)) *
+      remainingDays
+    );
+  }
+  return (
+    state.input.daily_visitors *
+    state.current_rate *
+    state.input.expected_winner_lift *
+    valuePerConversion(state.input) *
+    remainingDays
+  );
+}
+
 function accrueIncrementalConversions(
   state: MutablePageState,
   throughDay: number,
@@ -109,11 +193,17 @@ function completeTest(
   state: MutablePageState,
   active: ActiveTest,
   timeline: TestRecord[] | null,
+  states: MutablePageState[],
+  scenario: ClientScenario,
 ): void {
   let baselineAfter = active.baseline_before;
   state.tests += 1;
 
   if (active.won) {
+    const inFunnel = funnelPageIds(scenario).has(state.input.id);
+    const funnelBefore = inFunnel
+      ? funnelValuePerDay(scenario, states)
+      : 0;
     accrueIncrementalConversions(state, active.end_day);
     state.winners += 1;
     baselineAfter =
@@ -121,10 +211,11 @@ function completeTest(
     state.current_rate = baselineAfter;
     state.value_events.push({
       day: active.end_day,
-      value_per_day:
-        (baselineAfter - active.baseline_before) *
-        state.input.daily_visitors *
-        valuePerConversion(state.input),
+      value_per_day: inFunnel
+        ? funnelValuePerDay(scenario, states) - funnelBefore
+        : (baselineAfter - active.baseline_before) *
+          state.input.daily_visitors *
+          valuePerConversion(state.input),
     });
   }
 
@@ -149,6 +240,9 @@ function finishTrial(
   timeline: TestRecord[],
   checkpointDays: number[],
 ): TrialResult {
+  const checkpointPageValues = checkpointDays.map((day) =>
+    states.map((state) => valueAtDay(state, day)),
+  );
   const pages: PageTrialResult[] = states.map((state) => {
     accrueIncrementalConversions(state, horizonDays);
     return {
@@ -158,8 +252,7 @@ function finishTrial(
       final_rate: state.current_rate,
       relative_lift: state.current_rate / state.input.baseline_rate - 1,
       incremental_conversions: state.incremental_conversions,
-      incremental_value:
-        state.incremental_conversions * valuePerConversion(state.input),
+      incremental_value: valueAtDay(state, horizonDays),
     };
   });
 
@@ -180,19 +273,10 @@ function finishTrial(
     ),
     pages,
     timeline,
-    checkpoint_values: checkpointDays.map((day) =>
-      states.reduce(
-        (total, state) =>
-          total +
-          state.value_events.reduce(
-            (pageTotal, event) =>
-              pageTotal +
-              event.value_per_day * Math.max(0, day - event.day),
-            0,
-          ),
-        0,
-      ),
+    checkpoint_values: checkpointPageValues.map((pageValues) =>
+      pageValues.reduce((total, value) => total + value, 0),
     ),
+    checkpoint_page_values: checkpointPageValues,
   };
 }
 
@@ -219,7 +303,9 @@ function simulateExecutionTrial(
           left.active!.end_day - right.active!.end_day ||
           left.index - right.index,
       );
-    due.forEach((state) => completeTest(state, state.active!, timeline));
+    due.forEach((state) =>
+      completeTest(state, state.active!, timeline, states, scenario),
+    );
   };
 
   for (
@@ -242,12 +328,12 @@ function simulateExecutionTrial(
       candidates.push({
         state,
         sizing,
-        potential_value:
-          state.input.daily_visitors *
-          state.current_rate *
-          state.input.expected_winner_lift *
-          valuePerConversion(state.input) *
-          Math.max(0, horizon - deploymentDay),
+        potential_value: potentialValueForWinner(
+          scenario,
+          states,
+          state,
+          deploymentDay,
+        ),
       });
     });
 
@@ -302,7 +388,7 @@ function simulateCeilingTrial(
         test_number: state.tests + 1,
       };
       state.active = active;
-      completeTest(state, active, timeline);
+      completeTest(state, active, timeline, states, scenario);
       startDay = active.end_day;
     }
   });
@@ -459,10 +545,20 @@ function runSimulation(
   return {
     summary,
     representative_timeline: representative.timeline,
+    representative_checkpoint_values: representative.checkpoint_values,
     value_trajectory: checkpointDays.map((day, checkpointIndex) => ({
       day,
       value: summarizeRange(
         trials.map((trial) => trial.checkpoint_values[checkpointIndex]),
+      ),
+    })),
+    value_composition: checkpointDays.map((day, checkpointIndex) => ({
+      day,
+      page_values: Object.fromEntries(
+        scenario.pages.map((page, pageIndex) => [
+          page.id,
+          representative.checkpoint_page_values[checkpointIndex][pageIndex],
+        ]),
       ),
     })),
   };
@@ -487,14 +583,37 @@ function readoutDays(scenario: ClientScenario): number[] {
   return days;
 }
 
+function baselineValueForScenario(scenario: ClientScenario): number {
+  const funnelIds = funnelPageIds(scenario);
+  const funnelValue = scenario.funnel?.enabled
+    ? funnelValuePerDay(scenario, createPageStates(scenario.pages)) *
+      scenario.program.horizon_days
+    : 0;
+  const independentValue = scenario.pages
+    .filter((page) => !funnelIds.has(page.id))
+    .reduce(
+      (total, page) =>
+        total +
+        page.daily_visitors *
+          page.baseline_rate *
+          valuePerConversion(page) *
+          scenario.program.horizon_days,
+      0,
+    );
+  return funnelValue + independentValue;
+}
+
 export function buildReadoutCheckpoints(
   scenario: ClientScenario,
   timeline: TestRecord[],
+  checkpointValues: number[],
 ): ReadoutCheckpoint[] {
   const days = readoutDays(scenario);
+  if (checkpointValues.length !== days.length) {
+    throw new Error("Readout value count must match reporting checkpoints.");
+  }
 
-  const pages = new Map(scenario.pages.map((page) => [page.id, page]));
-  return days.map((day) => ({
+  return days.map((day, index) => ({
     day,
     completed_tests: timeline.filter((test) => test.end_day <= day).length,
     active_tests: timeline.filter(
@@ -503,22 +622,7 @@ export function buildReadoutCheckpoints(
     shipped_winners: timeline.filter(
       (test) => test.won && test.end_day <= day,
     ).length,
-    incremental_value: timeline.reduce((total, test) => {
-      if (!test.won || test.end_day >= day) {
-        return total;
-      }
-      const page = pages.get(test.page_id);
-      if (!page) {
-        throw new Error(`Missing page "${test.page_id}" for readout.`);
-      }
-      return (
-        total +
-        (test.baseline_after - test.baseline_before) *
-          page.daily_visitors *
-          valuePerConversion(page) *
-          (day - test.end_day)
-      );
-    }, 0),
+    incremental_value: checkpointValues[index],
   }));
 }
 
@@ -538,6 +642,7 @@ export function buildForecast(
       representative_timeline: [],
       readouts: [],
       value_trajectory: [],
+      value_composition: [],
       feasibility: [],
       baseline_value: 0,
       with_plan_value: emptyRange(),
@@ -584,15 +689,7 @@ export function buildForecast(
     "ceiling",
     [],
   );
-  const baselineValue = scenario.pages.reduce(
-    (total, page) =>
-      total +
-      page.daily_visitors *
-        page.baseline_rate *
-        valuePerConversion(page) *
-        scenario.program.horizon_days,
-    0,
-  );
+  const baselineValue = baselineValueForScenario(scenario);
 
   return {
     execution: execution.summary,
@@ -601,8 +698,10 @@ export function buildForecast(
     readouts: buildReadoutCheckpoints(
       scenario,
       execution.representative_timeline,
+      execution.representative_checkpoint_values.slice(1),
     ),
     value_trajectory: execution.value_trajectory,
+    value_composition: execution.value_composition,
     feasibility: assessPageFeasibility(scenario.pages, scenario.program),
     baseline_value: baselineValue,
     with_plan_value: addToRange(

@@ -189,6 +189,31 @@ describe("buildForecast", () => {
     );
   });
 
+  it("models linked funnel stages against one terminal value", () => {
+    const scenario = getScenario("thornfield");
+    const result = buildForecast(scenario, 200);
+    const finalComposition = result.value_composition.at(-1);
+    const composedValue = Object.values(
+      finalComposition?.page_values ?? {},
+    ).reduce((total, value) => total + value, 0);
+
+    expect(result.baseline_value).toBeCloseTo(40_069_335);
+    expect(
+      result.execution.pages.find((page) => page.page_id === "homepage")
+        ?.incremental_value.upside,
+    ).toBeGreaterThan(0);
+    expect(
+      result.execution.pages.find((page) => page.page_id === "product")
+        ?.incremental_value.upside,
+    ).toBeGreaterThan(0);
+    expect(composedValue).toBeCloseTo(
+      result.readouts.at(-1)?.incremental_value ?? 0,
+    );
+    expect(result.value_trajectory.at(-1)?.value).toEqual(
+      result.execution.incremental_value,
+    );
+  });
+
   it("returns actionable validation issues instead of success-shaped output", () => {
     const scenario = onePageScenario();
     scenario.pages[0].daily_visitors = 0;

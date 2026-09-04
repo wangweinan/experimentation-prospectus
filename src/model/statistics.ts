@@ -302,6 +302,53 @@ export function validateScenario(scenario: ClientScenario): ValidationIssue[] {
     }
   });
 
+  if (scenario.funnel?.enabled) {
+    const funnel = scenario.funnel;
+    if (funnel.stages.length < 2) {
+      issues.push({
+        path: "funnel.stages",
+        message: "A joint funnel needs at least two ordered stages.",
+      });
+    }
+    const pageIds = new Set(scenario.pages.map((page) => page.id));
+    const stageIds = new Set<string>();
+    funnel.stages.forEach((stage, index) => {
+      if (!pageIds.has(stage.page_id)) {
+        issues.push({
+          path: `funnel.stages.${index}.page_id`,
+          message: "Each funnel stage must reference a modeled page.",
+        });
+      }
+      if (stageIds.has(stage.page_id)) {
+        issues.push({
+          path: `funnel.stages.${index}.page_id`,
+          message: "A page can appear only once in a funnel.",
+        });
+      }
+      stageIds.add(stage.page_id);
+      if (
+        !isFiniteNumber(stage.transition_rate) ||
+        stage.transition_rate <= 0 ||
+        stage.transition_rate > 1
+      ) {
+        issues.push({
+          path: `funnel.stages.${index}.transition_rate`,
+          message: "Funnel transition rate must be above 0% and at most 100%.",
+        });
+      }
+    });
+    const terminalStage = funnel.stages.at(-1);
+    const terminalPage = scenario.pages.find(
+      (page) => page.id === terminalStage?.page_id,
+    );
+    if (terminalPage && valuePerConversion(terminalPage) <= 0) {
+      issues.push({
+        path: "funnel.stages",
+        message: "The final funnel stage needs a direct conversion value.",
+      });
+    }
+  }
+
   return issues;
 }
 

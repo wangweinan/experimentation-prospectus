@@ -10,7 +10,7 @@ Use this as a talk track, not a script to read word-for-word.
 >
 > This planner starts with page-level traffic and conversion data, sizes tests
 > to 95% confidence and 80% power, fits those tests into a realistic launch
-> calendar, and simulates that plan 10,000 times. These are hypothetical
+> calendar, and simulates that plan 1,000 times. These are hypothetical
 > test-by-test paths, not historical years. The output is a range for
 > reliable tests, shipped wins, page-level conversion lift, and value—not a
 > promise based on a generic benchmark.”
@@ -33,8 +33,8 @@ The opening screen should read roughly:
 | --- | ---: |
 | Reliable tests | 47 |
 | Shipped wins | 12 |
-| Checkout conversion lift | 15.9% |
-| Likely added value | $2.8M |
+| Leading page conversion lift | 77.2% |
+| Likely added value | $21.4M |
 | Traffic-supported ceiling | 67 tests |
 
 These are seeded outputs. The same inputs produce the same results.
@@ -44,10 +44,10 @@ These are seeded outputs. The same inputs produce the same results.
 | What the audience sees | Question it answers | Calculation behind it |
 | --- | --- | --- |
 | Giant reliable-test count | “How many valid tests can we actually run?” | Two-proportion sample size, real traffic, minimum runtime, page concurrency, and launch pace |
-| Conservative / likely / upside wins | “How many changes might ship?” | 10th / 50th / 90th percentiles from 10,000 simulated planning paths |
+| Conservative / likely / upside wins | “How many changes might ship?” | 10th / 50th / 90th percentiles from 1,000 simulated planning paths |
 | Page lift | “How much better could this page become?” | Compounded shipped-win lift on that page only |
 | Likely added value | “What is the economic opportunity?” | Cumulative extra conversions after deployment × transparent value per conversion |
-| Cumulative value chart | “When could value appear, and how wide is the range?” | Pointwise P10 / P50 / P90 cumulative value across 10,000 simulated planning paths |
+| Cumulative value chart | “When could value appear, how wide is the range, and which pages contribute?” | P10–P90 band, P50 line, and page-attributed stacked areas across 1,000 simulations |
 | Traffic ceiling vs. plan | “Is traffic or team capacity the bottleneck?” | Continuous page-level testing compared with the launch-limited calendar |
 | Experiment runway | “When do tests run and wins launch?” | Representative median-like simulation path |
 | Client update rhythm | “What will we report every week/month?” | Cumulative completed tests, live tests, wins, and value at each reporting checkpoint |
@@ -65,7 +65,7 @@ Point to the giant `47`.
 > traffic-based sample requirement, only one test can run on a page at a time,
 > and the team starts four tests per 30 days.”
 
-Then point to `12 likely wins` and `$2.8M likely growth value`.
+Then point to `12 likely wins` and `$21.4M likely growth value`.
 
 > “At Thornfield’s 25% win-rate assumption, the middle simulated path has 12
 > shipped wins. Value starts only after each winner completes and launches.”
@@ -75,7 +75,7 @@ Then point to `12 likely wins` and `$2.8M likely growth value`.
 Point to conservative / likely / upside below a metric.
 
 > “I do not want one precise-looking promise. We simulate the selected 365-day
-> plan 10,000 times, drawing win or no win after each completed test. ‘Likely’
+> plan 1,000 times, drawing win or no win after each completed test. ‘Likely’
 > is the middle result. ‘Conservative’ and ‘upside’
 > are the 10th and 90th percentile planning cases. They are not statistical
 > confidence intervals and they are not guarantees.”
@@ -137,41 +137,59 @@ Value used in forecast: $185 per completed order
 > the arithmetic visible instead of asking an AE to understand an opaque
 > expected-value number.”
 
-If time allows, switch sample accounts:
+Point to **Model pages as one connected funnel**:
 
-| Client | What to point out |
-| --- | --- |
-| BrightPath | `$49` one-time course purchase |
-| Meridian | `$12.99/month × 1 month`; no invented retention or LTV |
-| NovaDash | `$79` pre-calculated downstream value; paid conversion happens in-product |
-| Stackform | `$4,200 contract × 14% close rate = $588` per demo; 75-day cycle disclosed |
-| Thornfield | `$185` order value; homepage and product page stay unpriced |
+```text
+18,000 Homepage visitors
+× 52.2% reach Product page
+× 9.1% reach Checkout
+× 69% complete an order
+× $185 order value
+= about $40.1M baseline value
+```
+
+> “Every stage feeds one terminal order value. A Homepage winner improves the
+> Homepage-to-Product transition; a Product winner improves
+> Product-to-Checkout; a Checkout winner improves order completion. The model
+> recalculates one joint funnel instead of assigning $185 independently to all
+> three pages.”
+
+All samples are ready to demo:
+
+| Client | Structure | Likely outlook | Best demo angle |
+| --- | --- | ---: | --- |
+| BrightPath | Parallel course pages; joint funnel off | 29 tests · 6 wins · $516.7K | Show page composition without forcing unrelated courses into one chain |
+| Meridian | Homepage → Sign-up → subscription | 47 tests · 9 wins · $4.1M | Show `$12.99/month × 1 month` and explicit retention restraint |
+| NovaDash | Homepage → Pricing; Sign-up outside chain | 47 tests · 9 wins · $71.4K | Show indirect Homepage value while Pricing itself remains underpowered |
+| Stackform | Homepage → Demo request → expected contract value | 4 tests · 0 median wins · $0 median | Show honest P50 of zero and High case around $470K |
+| Thornfield | Homepage → Product → Checkout → order | 47 tests · 12 wins · $21.4M | Show full joint funnel and page-attributed value stack |
 
 ### 6. Show compounding
 
-Point to Checkout lift.
+Point to Homepage lift.
 
-> “A shipped win does not add a flat 3 percentage points. It multiplies the
-> current rate by 1.03. Five 3% wins produce:
+> “A shipped win does not add a flat number of percentage points. Six Homepage
+> wins at 10% each produce:
 >
-> `1.03⁵ - 1 = 15.9%` relative lift.
+> `1.10⁶ - 1 = 77.2%` relative lift.
 >
 > Each later winner starts from the already-improved rate, so conversion and
-> revenue gains compound. The model accrues the full difference from the
-> original baseline for every day after deployment.”
+> revenue gains compound. In joint-funnel mode, wins on different pages also
+> compose through the product of the current transition rates.”
 
 ### 7. Show the cumulative value paths
 
 Point to **How value builds after winners ship**.
 
-> “This is the same 10,000-path simulation shown over calendar time. At each
-> client checkpoint, I sort cumulative value across all paths. The light line is
-> the 10th percentile, the solid line is the median, and the dotted line is the
-> 90th percentile. The shaded region is the planning range.
+> “This is the same 1,000-path simulation shown over calendar time. At each
+> client checkpoint, I sort cumulative value across all paths. The pale band
+> spans the 10th through 90th percentiles, and the solid line is the median.
+> Blue, orange, and green areas show how Homepage, Product page, and Checkout
+> compose that likely total.
 >
-> These are not three historical clients and the median line is not one literal
-> trial. They are pointwise estimates of the outcome distribution. All three
-> stay at zero until a winner can finish and launch.”
+> The median line is not one literal trial. It is a pointwise estimate of the
+> outcome distribution. The plot stays at zero until a winner can finish and
+> launch.”
 
 ### 8. Show cadence changing the output
 
@@ -294,7 +312,7 @@ one active test per page.
 
 ### Winner simulation
 
-The phrase “10,000 simulations” has a narrow, specific meaning here. The model
+The phrase “1,000 simulations” has a narrow, specific meaning here. The model
 does **not** simulate new traffic, new baseline rates, or a new effect size on
 every run. The only random event is whether each completed test produces a
 shippable winner.
@@ -307,6 +325,7 @@ shippable winner.
 | Shipped-winner lift |  |
 | Win-rate probability |  |
 | Value calculation |  |
+| Funnel stage order and transition rates |  |
 | Launch pace and scheduling policy |  |
 
 That makes the output conditional:
@@ -315,7 +334,7 @@ That makes the output conditional:
 > behave as entered, how much variation comes from the order in which tests
 > win?”
 
-It is not a forecast trained on 10,000 historical client-years.
+It is not a forecast trained on 1,000 historical client-years.
 
 #### Reproducible pseudo-random draws
 
@@ -389,7 +408,9 @@ At each launch opportunity:
    finish inside the horizon.
 4. **Re-size from the current baseline.** Calculate sample size again after
    earlier wins; the result is cached for identical page/rate combinations.
-5. **Prioritize candidates.** Rank each available page by:
+5. **Prioritize candidates.** For a linked funnel page, hypothetically apply
+   one winner to that stage and calculate the marginal terminal value through
+   the full funnel. For an independent page, use:
 
    ```text
    daily visitors
@@ -409,7 +430,7 @@ test that would finish later merely to increase the count.
 Equivalent pseudocode:
 
 ```text
-for each of 10,000 trial seeds:
+for each of 1,000 trial seeds:
     initialize every page at its supplied baseline
 
     for launch_day in 0, 7.5, 15, ... before horizon:
@@ -433,17 +454,46 @@ current page rate stays unchanged
 deployed value added = 0
 ```
 
-If it wins:
+If it wins, the page’s own test metric becomes:
 
 ```text
 new page rate
   = current page rate × (1 + expected shipped-win lift)
+```
 
+For an independent page:
+
+```text
 marginal value per day from this winner
   = (new page rate - previous page rate)
     × daily visitors
     × value per conversion
 ```
+
+For a linked funnel stage:
+
+```text
+funnel value per day before
+  = entry traffic
+    × product of all current transition rates
+    × terminal value
+
+winning stage rate
+  = current stage rate × (1 + expected shipped-win lift)
+
+funnel value per day after
+  = entry traffic
+    × product of all updated transition rates
+    × terminal value
+
+marginal value per day attributed to this page
+  = funnel value after - funnel value before
+```
+
+Transition rates are capped below 100%. When wins on several pages compose,
+the later page receives the interaction gain created at that event. This
+stable sequential attribution makes page contributions additive to the exact
+joint-funnel total.
 
 The winner becomes a dated value event. At any later checkpoint:
 
@@ -462,11 +512,11 @@ duration. That path dependence is why the planner simulates the complete
 planning horizon instead of applying a simple binomial interval to a fixed test
 count.
 
-#### From 10,000 simulations to Low / Likely / High
+#### From 1,000 simulations to Low / Likely / High
 
 After all trials finish, each output metric is summarized separately:
 
-1. collect that metric from all 10,000 trials;
+1. collect that metric from all 1,000 trials;
 2. sort the values from smallest to largest;
 3. select the observed value at the rounded percentile index; and
 4. report P10, P50, and P90.
@@ -483,7 +533,8 @@ from one identical trial. They are marginal summaries of each output.
 
 #### How the value chart is built
 
-Each execution trial records cumulative value at:
+Each execution trial records cumulative value, including the page that caused
+each marginal value event, at:
 
 ```text
 day 0
@@ -491,12 +542,17 @@ every reporting checkpoint
 final horizon day
 ```
 
-At each checkpoint, the model sorts the 10,000 cumulative values and selects
-P10, P50, and P90. Connecting those pointwise estimates creates the three
-lines. The P10–P90 area becomes the shaded planning band.
+At each checkpoint, the model sorts the 1,000 cumulative values and selects
+P10, P50, and P90. The P10–P90 area becomes the pale planning band and P50 is
+the solid line.
+
+For page composition, the model takes the additive page shares from the one
+representative near-median trial and scales them to the P50 total at each
+checkpoint. The colored stack therefore reaches the Likely line while showing
+which page’s winner events created that value mix.
 
 The final chart values exactly match the Low / Likely / High headline value
-estimates because both use the same 10,000 trials and percentile rule.
+estimates because both use the same 1,000 trials and percentile rule.
 
 #### How the representative runway is selected
 
@@ -527,7 +583,7 @@ pointwise P50 chart value. That distinction is intentional:
 
 #### Traffic-ceiling simulation
 
-The planner runs a second set of 10,000 trials with a different deterministic
+The planner runs a second set of 1,000 trials with a different deterministic
 mode salt. In ceiling mode:
 
 - there is no global launch interval;
@@ -683,7 +739,7 @@ fixed-count binomial model misses that path dependence.
 
 ### “Are the three chart lines actual simulated years?”
 
-No. The engine does run 10,000 hypothetical versions of the selected planning
+No. The engine does run 1,000 hypothetical versions of the selected planning
 horizon, but the plotted lines are pointwise summaries across them: P10, P50,
 and P90 at each checkpoint. No historical customer data or historical years are
 being claimed.
@@ -699,11 +755,12 @@ Yes. Every shipped win raises the current page rate, not the original one. The
 revenue integral uses the full difference between the current compounded rate
 and the original rate for every post-deployment day.
 
-### “Why is NovaDash value zero?”
+### “Why does NovaDash show value if Pricing is underpowered?”
 
-Its only valued page cannot reliably detect the supplied 3% relative lift in
-the one-year horizon. The tool refuses to monetize an underpowered result and
-shows the roughly 8.35% lift the traffic can support.
+The Pricing page still cannot reliably detect its supplied 3% lift. Homepage
+tests can, however, improve the explicitly linked Homepage → Pricing
+transition. Those measured upstream gains propagate to Pricing’s pre-calculated
+terminal value. The Sign-up page remains outside that simple chain.
 
 ### “Why can Stackform’s likely winner count be zero?”
 

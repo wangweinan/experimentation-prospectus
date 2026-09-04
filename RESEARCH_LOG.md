@@ -52,7 +52,7 @@ does not change page priority, it scales dollars without arbitrarily redrawing
 the same test and winner path.
 
 The simulation now retains cumulative value at every reporting checkpoint.
-The visualization plots pointwise P10/P50/P90 across all 10,000 paths, with a
+The visualization plots pointwise P10/P50/P90 across all 1,000 paths, with a
 P10–P90 band. This is deliberately labeled as a simulated planning
 distribution, not historical evidence or three literal sample paths.
 
@@ -70,12 +70,12 @@ prospect.
 | Winner impact | Deploy at completion and compound | Produces a chronological roadmap rather than annualized hand-waving |
 | Shipped-win lift | Separate editable conversion uplift, defaulting to MDE | Replaces rather than adds to MDE as the impact assumption; revenue is derived |
 | Path dependence | Re-size later tests after wins | Improved baselines alter future sample requirements |
-| Uncertainty engine | Seeded Monte Carlo, 10,000 paths | Exact binomial counts no longer hold when test count depends on earlier wins |
+| Uncertainty engine | Seeded Monte Carlo, 1,000 paths | Faster live updates while retaining stable P10/P50/P90 planning estimates |
 | Dollar timing | Count only after deployment | Conservative and easy to explain |
 | Operational capacity | Show traffic ceiling plus editable launch cap | Traffic alone overstates what a real team can execute |
 | Scheduling priority | Greatest supplied direct-value opportunity first | Explicit business policy; no opaque composite score |
 | Cross-page lift | Keep relative lift page-level | Page events and visitors may overlap |
-| Upstream value | No attribution when supplied value is zero | The brief provides no funnel transition probabilities |
+| Upstream value | Optional joint funnel with explicit transition rates | Propagate stage wins to one terminal value without duplicating per-page revenue |
 | Subscription / pipeline value | Count supplied value once and label its basis | Avoid unsupported LTV and cash timing |
 | ROI | Do not claim it | No program cost is supplied |
 | Narrative | Deterministic | Keeps every claim traceable to the same model |
@@ -140,11 +140,11 @@ Discarded. A homepage click, sign-up, checkout, and purchase are not one
 exchangeable event, and visitors may appear on several pages. The tool shows
 page lift and aggregates only compatible quantities.
 
-### Funnel and LTV inference
+### Automatic funnel and LTV inference
 
-Discarded. The supplied files do not include transition probabilities,
-retention, margin, realization lag, or discounting. A richer number would be
-less rigorous, not more.
+Discarded. The final version supports a simple joint funnel only through visible
+transition rates. It does not silently infer retention, margin, realization
+lag, or discounting.
 
 ### LLM-written narrative
 
@@ -235,7 +235,7 @@ npm run build
 ```
 
 - 3 Vitest files passed
-- 19 tests passed
+- 20 tests passed
 - 1 all-client snapshot written and re-verified
 - TypeScript checking passed
 - Vite production build passed
@@ -244,22 +244,22 @@ npm run build
 - Browser print produced a seven-page, landscape Letter PDF with editing controls
   removed
 - The initial low-contrast visual treatment was rejected after inspection and
-  replaced by the two-ink ruled-information system documented above
+  replaced by the Coframe system and a high-contrast page-composition palette
 
-The 10,000-path client audit produced:
+The 1,000-path client audit produced:
 
 | Client | Reliable tests (likely) | Winners (likely) | Incremental modeled value (likely) | Traffic-supported tests |
 | --- | ---: | ---: | ---: | ---: |
-| BrightPath | 29 | 6 | $505,863 | 34 |
-| Meridian | 47 | 9 | $1,718,019 | 52 |
-| NovaDash | 47 | 9 | $0 | 52 |
+| BrightPath | 29 | 6 | $516,673 | 34 |
+| Meridian | 47 | 9 | $4,147,317 | 52 |
+| NovaDash | 47 | 9 | $71,447 | 52 |
 | Stackform | 4 | 0 | $0 | 5 |
-| Thornfield & Co | 47 | 12 | $2,770,871 | 67 |
+| Thornfield & Co | 47 | 12 | $21,437,978 | 67 |
 
-The zero-dollar and zero-median-winner results are retained rather than
-massaged: NovaDash’s only directly valued page is underpowered at its supplied
-MDE, while four Stackform tests have a greater than 50% chance of producing no
-winners at a 15% win rate.
+The zero-median Stackform result is retained rather than massaged: four tests
+at a 15% win rate have a greater than 50% chance of producing no winners.
+NovaDash’s pricing test remains underpowered, but its Homepage can now carry
+measured indirect value through the explicit Homepage → Pricing funnel.
 
 ## AI and tool disclosure
 
@@ -270,6 +270,8 @@ winners at a 15% win rate.
 - Clarify skill for non-technical labels, help text, and calculation tooltips
 - Colorize skill for the verified Coframe palette and accessible color roles
 - Delight skill for restrained, presentation-appropriate interaction polish
+- Critique skill for visual hierarchy and chart simplification
+- Article Writing skill for the live demo walkthrough
 - Vercel React Best Practices skill for React implementation guidance
 - Python 3.9 standard library for independent statistical reference values
 - Vitest for the committed model and scenario audit
@@ -277,6 +279,12 @@ winners at a 15% win rate.
 
 No background coding agents, runtime LLM API, third-party plugin, hook, or MCP
 integration was added to the product.
+
+The requested `scientific-visualization` skill was not installed, so no
+unreviewed skill was added; the chart was refined directly using scientific
+visualization and data-ink principles. The LinkedIn plugin-documentation skill
+was checked but was inapplicable to this non-plugin repository, and its optional
+usage-metric binary was unavailable.
 
 ## Productionization questions
 

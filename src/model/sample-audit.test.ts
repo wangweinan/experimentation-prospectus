@@ -38,6 +38,9 @@ describe("supplied-client audit", () => {
       expect(result.with_plan_value.likely).toBeCloseTo(
         result.baseline_value + result.execution.incremental_value.likely,
       );
+      expect(result.value_trajectory.at(-1)?.value).toEqual(
+        result.execution.incremental_value,
+      );
 
       return {
         company: scenario.company,

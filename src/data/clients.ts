@@ -132,6 +132,14 @@ export const CLIENT_SCENARIOS: readonly ClientScenario[] = [
         },
       },
     ],
+    funnel: {
+      enabled: true,
+      name: "Homepage to subscription",
+      stages: [
+        { page_id: "homepage", transition_rate: 4800 / 11000 },
+        { page_id: "sign-up", transition_rate: 0.57 },
+      ],
+    },
   },
   {
     id: "novadash",
@@ -181,6 +189,14 @@ export const CLIENT_SCENARIOS: readonly ClientScenario[] = [
         expected_winner_lift: 0.04,
       },
     ],
+    funnel: {
+      enabled: true,
+      name: "Homepage to pricing conversion",
+      stages: [
+        { page_id: "homepage", transition_rate: 700 / 9400 },
+        { page_id: "pricing", transition_rate: 0.018 },
+      ],
+    },
   },
   {
     id: "stackform",
@@ -221,6 +237,14 @@ export const CLIENT_SCENARIOS: readonly ClientScenario[] = [
         },
       },
     ],
+    funnel: {
+      enabled: true,
+      name: "Homepage to demo request",
+      stages: [
+        { page_id: "homepage", transition_rate: 620 / 1800 },
+        { page_id: "demo-request", transition_rate: 0.074 },
+      ],
+    },
   },
   {
     id: "thornfield",
@@ -266,6 +290,15 @@ export const CLIENT_SCENARIOS: readonly ClientScenario[] = [
         value_model: { kind: "one_time", amount: 185 },
       },
     ],
+    funnel: {
+      enabled: true,
+      name: "Homepage to completed order",
+      stages: [
+        { page_id: "homepage", transition_rate: 9400 / 18000 },
+        { page_id: "product", transition_rate: 860 / 9400 },
+        { page_id: "checkout", transition_rate: 0.69 },
+      ],
+    },
   },
 ];
 
@@ -276,6 +309,12 @@ export function cloneScenario(scenario: ClientScenario): ClientScenario {
     ...scenario,
     program: { ...scenario.program },
     pages: scenario.pages.map((page) => ({ ...page })),
+    funnel: scenario.funnel
+      ? {
+          ...scenario.funnel,
+          stages: scenario.funnel.stages.map((stage) => ({ ...stage })),
+        }
+      : undefined,
   };
 }
 

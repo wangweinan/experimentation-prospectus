@@ -378,6 +378,80 @@ h2 {
   padding: 0.3rem 0 0.4rem;
 }
 
+.funnel-editor {
+  padding-bottom: 0.4rem;
+}
+
+.funnel-toggle {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.funnel-toggle input {
+  width: 1rem;
+  height: 1rem;
+  margin: 0.12rem 0 0;
+  accent-color: var(--signal);
+}
+
+.funnel-toggle > span {
+  display: flex;
+  align-items: center;
+}
+
+.funnel-toggle .info-tip {
+  position: static;
+}
+
+.funnel-toggle .info-tip::after {
+  right: auto;
+  left: 0;
+}
+
+.funnel-editor__intro {
+  margin: 0.65rem 0 1rem 1.65rem;
+  color: var(--ink-faint);
+  font-size: 0.68rem;
+}
+
+.funnel-stages {
+  padding: 0.9rem 1rem 0.1rem;
+  border: 1px solid color-mix(in srgb, var(--signal) 18%, transparent);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--signal-wash) 24%, var(--paper-light));
+}
+
+.funnel-terminal {
+  display: grid;
+  gap: 0.15rem;
+  margin-top: 0.75rem;
+  padding: 0.8rem 0;
+  border-block: 1px solid var(--rule-soft);
+}
+
+.funnel-terminal > span {
+  color: var(--ink-faint);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.funnel-terminal > strong {
+  color: var(--signal);
+  font-size: 1rem;
+}
+
+.funnel-terminal > p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.66rem;
+}
+
 .page-editor-list {
   border-top: 1px solid var(--rule);
 }
@@ -950,40 +1024,99 @@ h2 {
   font-size: 11px;
 }
 
-.trajectory-chart__band {
-  fill: color-mix(in srgb, var(--signal-wash) 68%, transparent);
-}
-
-.trajectory-chart__line {
-  fill: none;
+.trajectory-chart__page-area {
+  fill-opacity: 0.86;
+  stroke: var(--paper-light);
+  stroke-opacity: 0.95;
+  stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 
-.trajectory-chart__line--low {
-  stroke: var(--signal-soft);
-  stroke-dasharray: 5 6;
-  stroke-width: 2;
-}
-
-.trajectory-chart__line--likely {
-  stroke: var(--signal);
+.trajectory-chart__series {
+  fill: none;
+  stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 4;
+  stroke-width: 1.75;
+  vector-effect: non-scaling-stroke;
 }
 
-.trajectory-chart__line--high {
-  stroke: var(--signal-dark);
-  stroke-dasharray: 2 6;
-  stroke-linecap: round;
+.trajectory-chart__series--high {
+  color: var(--ink);
+}
+
+.trajectory-chart__series--likely {
+  color: var(--signal);
   stroke-width: 2;
 }
 
-.trajectory-chart__point {
+.trajectory-chart__series--low {
+  color: #3f8fc1;
+}
+
+.trajectory-chart__connector {
+  stroke: currentColor;
+  stroke-width: 1;
+}
+
+.trajectory-chart__end-label {
+  fill: currentColor;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.trajectory-chart__series--likely .trajectory-chart__end-label {
+  font-weight: 750;
+}
+
+.trajectory-chart__checkpoint {
   fill: var(--paper-light);
   stroke: var(--signal);
-  stroke-width: 2;
+  stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
+  cursor: crosshair;
+  transition: r 100ms ease-out;
+}
+
+.trajectory-chart__checkpoint:hover,
+.trajectory-chart__checkpoint:focus {
+  r: 5;
+  outline: none;
+}
+
+.trajectory-inspector {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 1.3rem;
+  margin-top: 1rem;
+  padding: 0.65rem 0;
+  border-block: 1px solid var(--rule-soft);
+  color: var(--ink-soft);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.trajectory-inspector > strong {
+  color: var(--ink);
+}
+
+.trajectory-inspector > span:nth-of-type(2) {
+  color: var(--signal);
+  font-weight: 700;
+}
+
+.trajectory-inspector > small {
+  margin-left: auto;
+  color: var(--ink-faint);
+}
+
+.trajectory-caption {
+  max-width: 52rem;
+  margin: 0.7rem 0 0;
+  color: var(--ink-faint);
+  font-size: 0.7rem;
 }
 
 .trajectory-legend {
@@ -1008,7 +1141,7 @@ h2 {
 }
 
 .trajectory-legend__low {
-  border-color: var(--signal-soft) !important;
+  border-color: #9fc0ff !important;
   border-style: dashed;
 }
 
@@ -1022,11 +1155,32 @@ h2 {
   border-style: dotted;
 }
 
-.trajectory-caption {
-  max-width: 52rem;
-  margin: 0.7rem 0 0;
+.trajectory-composition {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 0.65rem;
+  color: var(--ink-soft);
+  font-size: 0.66rem;
+}
+
+.trajectory-composition > strong {
   color: var(--ink-faint);
-  font-size: 0.7rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.trajectory-composition > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.trajectory-composition i {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 0.15rem;
 }
 
 .runway-legend {
@@ -1763,6 +1917,7 @@ h2 {
   .trajectory-chart {
     min-width: 0;
   }
+
 
   .readout-strip article {
     display: none;

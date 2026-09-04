@@ -40,12 +40,24 @@ export interface PageInput {
   value_model?: PageValueModel;
 }
 
+export interface FunnelStage {
+  page_id: string;
+  transition_rate: number;
+}
+
+export interface FunnelConfig {
+  enabled: boolean;
+  name: string;
+  stages: FunnelStage[];
+}
+
 export interface ClientScenario {
   id: string;
   company: string;
   context: string;
   program: ProgramInputs;
   pages: PageInput[];
+  funnel?: FunnelConfig;
 }
 
 export interface ValidationIssue {
@@ -97,6 +109,7 @@ export interface TrialResult {
   pages: PageTrialResult[];
   timeline: TestRecord[];
   checkpoint_values: number[];
+  checkpoint_page_values: number[][];
 }
 
 export interface Range {
@@ -134,12 +147,18 @@ export interface ValueTrajectoryPoint {
   value: Range;
 }
 
+export interface ValueCompositionPoint {
+  day: number;
+  page_values: Record<string, number>;
+}
+
 export interface ForecastResult {
   execution: ForecastSummary;
   traffic_ceiling: ForecastSummary;
   representative_timeline: TestRecord[];
   readouts: ReadoutCheckpoint[];
   value_trajectory: ValueTrajectoryPoint[];
+  value_composition: ValueCompositionPoint[];
   feasibility: PageFeasibility[];
   baseline_value: number;
   with_plan_value: Range;

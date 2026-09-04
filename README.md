@@ -42,7 +42,7 @@ profiles. An AE can:
 2. edit the README-defined program and page inputs;
 3. see conservative, likely, and upside outcomes update;
 4. walk through the 12-month experiment runway;
-5. show cumulative Low / Likely / High value paths over calendar time;
+5. show the Likely cumulative value stack and Low–High range over calendar time;
 6. compare page capacity with directly modeled value;
 7. open “How this is calculated” when a prospect wants the detail; and
 8. use the browser’s print dialog to save a client-ready PDF.
@@ -105,10 +105,47 @@ The five examples map cleanly:
 - Meridian: `$12.99/month × 1 month`; only the supplied first month is counted
 - NovaDash: `$79` pre-calculated downstream value, with in-product payment timing disclosed
 - Stackform: `$4,200 contract × 14% close rate = $588` expected per demo, with a 75-day cycle disclosed
-- Thornfield: `$185` one-time order value; upstream pages remain `$0`
+- Thornfield: `$185` one-time order value; upstream direct values remain `$0`
+  while the joint funnel attributes their marginal effect on orders
 
-This structure improves transparency without inventing retention, funnel, or
-cash-timing inputs that the client files do not provide.
+This structure improves transparency without inventing retention or cash-timing
+inputs that the client files do not provide.
+
+### Joint funnel value
+
+When pages form one path, the planner can model them as a connected funnel with
+simple conditional transition rates. It uses:
+
+```text
+terminal events per day
+  = entry-page visitors × transition 1 × transition 2 × ...
+
+terminal value per day
+  = terminal events per day × final-page value
+```
+
+Each stage winner multiplies that stage’s current transition rate by its
+shipped-winner lift. The simulation recalculates the single terminal revenue
+rate after every winner, so upstream and downstream effects compose without
+assigning a duplicate dollar value to each page.
+
+The marginal change caused by each winner is attributed to that winner’s page.
+Those additive event contributions form the colored page stack in the
+cumulative value chart.
+
+Sample defaults:
+
+| Client | Value structure |
+| --- | --- |
+| BrightPath | Parallel course-page purchases; joint funnel off |
+| Meridian | Homepage → Sign-up page → subscription value |
+| NovaDash | Homepage → Pricing conversion → pre-calculated downstream value; Sign-up remains outside the chain |
+| Stackform | Homepage → Demo request → expected contract value |
+| Thornfield | Homepage → Product page → Checkout → order value |
+
+For intermediate stages, sample transition defaults use observed next-page
+traffic divided by current-page traffic. Final-stage rates use the supplied
+terminal conversion rate. Every rate is visible and editable.
 
 ## Statistical model
 
@@ -160,7 +197,7 @@ That result is the **traffic-supported ceiling**, not the sales promise.
 
 ### 3. Model winner uncertainty
 
-The browser runs 10,000 seeded simulations of the selected planning horizon.
+The browser runs 1,000 seeded simulations of the selected planning horizon.
 These are hypothetical test-by-test paths, not historical years or client
 records. The same inputs always yield the same result.
 
@@ -177,15 +214,15 @@ The main UI calls the 10th, 50th, and 90th percentiles **conservative**,
 intervals.
 
 The cumulative value chart calculates those percentiles independently at every
-client checkpoint and connects them over calendar time:
+client checkpoint:
 
 - Low = pointwise P10
 - Likely = pointwise P50
 - High = pointwise P90
 
-The shaded band is the P10–P90 planning range. These curves summarize the
-simulation distribution; they are not three observed clients or three literal
-historical paths.
+The pale band is the P10–P90 planning range and the solid line is P50. Stacked
+page colors show the representative near-median composition scaled to the P50
+total. These are not observed clients or historical paths.
 
 ### 4. Count conversion value
 
@@ -214,7 +251,7 @@ the model accrues the full cumulative improvement for the remaining days.
 The model does **not** infer:
 
 - dollars for pages whose supplied value is `0`
-- relationships between upstream and downstream funnel events
+- funnel relationships or transition rates that the user has not entered
 - subscription retention or lifetime value
 - sales-cycle cash timing
 - experiment or program cost

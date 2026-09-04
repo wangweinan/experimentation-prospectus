@@ -4,6 +4,7 @@ import { InfoTip } from "./InfoTip";
 import { CLIENT_SCENARIOS } from "../data/clients";
 import type {
   ClientScenario,
+  FunnelConfig,
   PageFeasibility,
   PageInput,
   PageValueModel,
@@ -41,6 +42,7 @@ interface PlannerInputsProps {
     field: K,
     value: PageInput[K],
   ) => void;
+  onFunnelChange: (funnel: FunnelConfig | undefined) => void;
   onAddPage: () => void;
   onRemovePage: (pageId: string) => void;
 }
@@ -191,9 +193,13 @@ function SelectField({
 }
 
 function isValueModelKind(value: string): value is PageValueModel["kind"] {
-  return ["none", "one_time", "subscription", "lead", "expected"].includes(
-    value,
-  );
+  return [
+    "none",
+    "one_time",
+    "subscription",
+    "lead",
+    "expected",
+  ].includes(value);
 }
 
 function ValueModelEditor({
@@ -405,6 +411,133 @@ function issueFor(issues: ValidationIssue[], path: string): string | undefined {
   return issues.find((issue) => issue.path === path)?.message;
 }
 
+function defaultFunnel(pages: PageInput[]): FunnelConfig {
+  return {
+    enabled: true,
+    name: "Connected conversion funnel",
+    stages: pages.map((page, index) => ({
+      page_id: page.id,
+      transition_rate:
+        index < pages.length - 1
+          ? Math.min(
+              1,
+              pages[index + 1].daily_visitors / page.daily_visitors,
+            )
+          : page.baseline_rate,
+    })),
+  };
+}
+
+function FunnelEditor({
+  scenario,
+  issues,
+  onChange,
+}: {
+  scenario: ClientScenario;
+  issues: ValidationIssue[];
+  onChange: (funnel: FunnelConfig | undefined) => void;
+}) {
+  const funnel = scenario.funnel;
+  const enabled = Boolean(funnel?.enabled);
+  const stages =
+    funnel?.stages.map((stage) => ({
+      stage,
+      page: scenario.pages.find((page) => page.id === stage.page_id),
+    })) ?? [];
+  const terminalPage = stages.at(-1)?.page;
+
+  return (
+    <div className="input-section funnel-editor">
+      <label className="funnel-toggle">
+        <input
+          type="checkbox"
+          checked={enabled}
+          disabled={scenario.pages.length < 2}
+          onChange={(event) => {
+            if (event.currentTarget.checked) {
+              onChange(
+                funnel
+                  ? { ...funnel, enabled: true }
+                  : defaultFunnel(scenario.pages),
+              );
+            } else if (funnel) {
+              onChange({ ...funnel, enabled: false });
+            }
+          }}
+        />
+        <span>
+          Model pages as one connected funnel
+          <InfoTip text="When enabled, stage wins jointly change one terminal revenue outcome. This avoids assigning a separate dollar value to every upstream page." />
+        </span>
+      </label>
+      <p className="funnel-editor__intro">
+        {enabled
+          ? "Enter the measured share that moves from each stage to the next."
+          : "Turn this on when the pages form one measurable path to a valued outcome."}
+      </p>
+
+      {enabled && funnel ? (
+        <>
+          <div className="funnel-stages">
+            {stages.map(({ stage, page }, index) => {
+              const nextPage = stages[index + 1]?.page;
+              return (
+                <NumberField
+                  key={stage.page_id}
+                  id={`funnel-${stage.page_id}`}
+                  label={`${page?.name ?? "Missing page"} → ${
+                    nextPage?.name ?? page?.conversion_name ?? "valued outcome"
+                  }`}
+                  value={Math.round(stage.transition_rate * 1000) / 10}
+                  tooltip={
+                    nextPage
+                      ? `Of visitors at ${page?.name ?? "this stage"}, what share reaches ${nextPage.name}?`
+                      : `Of visitors at ${page?.name ?? "the final stage"}, what share completes the valued outcome?`
+                  }
+                  min={0.01}
+                  max={100}
+                  step={0.1}
+                  suffix="%"
+                  error={issueFor(
+                    issues,
+                    `funnel.stages.${index}.transition_rate`,
+                  )}
+                  onChange={(rate) =>
+                    onChange({
+                      ...funnel,
+                      stages: funnel.stages.map((candidate, stageIndex) =>
+                        stageIndex === index
+                          ? { ...candidate, transition_rate: rate / 100 }
+                          : candidate,
+                      ),
+                    })
+                  }
+                />
+              );
+            })}
+          </div>
+          <div className="funnel-terminal">
+            <span>One terminal value</span>
+            <strong>
+              {terminalPage
+                ? formatCurrency(valuePerConversion(terminalPage), false)
+                : "Missing"}
+            </strong>
+            <p>
+              {terminalPage
+                ? describeValueModel(terminalPage)
+                : "Choose a valid final page."}
+            </p>
+          </div>
+          {issueFor(issues, "funnel.stages") ? (
+            <p className="section-error">{issueFor(issues, "funnel.stages")}</p>
+          ) : null}
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 function PageEditor({
   page,
   index,
@@ -588,6 +721,7 @@ export function PlannerInputs({
   onCompanyChange,
   onProgramChange,
   onPageChange,
+  onFunnelChange,
   onAddPage,
   onRemovePage,
 }: PlannerInputsProps) {
@@ -760,6 +894,12 @@ export function PlannerInputs({
             </div>
           </details>
         </div>
+
+        <FunnelEditor
+          scenario={scenario}
+          issues={issues}
+          onChange={onFunnelChange}
+        />
 
         <div className="input-section input-section--pages">
           <div className="input-section__heading">

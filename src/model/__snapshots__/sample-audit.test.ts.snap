@@ -5,9 +5,9 @@ exports[`supplied-client audit > keeps every scenario valid, bounded, and reprod
   {
     "company": "BrightPath",
     "incremental_modeled_value": {
-      "conservative": 195428,
-      "likely": 505863,
-      "upside": 949848,
+      "conservative": 194735,
+      "likely": 516673,
+      "upside": 936728,
     },
     "likely_winners": {
       "conservative": 3,
@@ -24,9 +24,9 @@ exports[`supplied-client audit > keeps every scenario valid, bounded, and reprod
   {
     "company": "Meridian",
     "incremental_modeled_value": {
-      "conservative": 912915,
-      "likely": 1718019,
-      "upside": 2666663,
+      "conservative": 2071915,
+      "likely": 4147317,
+      "upside": 6558618,
     },
     "likely_winners": {
       "conservative": 6,
@@ -43,9 +43,9 @@ exports[`supplied-client audit > keeps every scenario valid, bounded, and reprod
   {
     "company": "NovaDash",
     "incremental_modeled_value": {
-      "conservative": 0,
-      "likely": 0,
-      "upside": 0,
+      "conservative": 29426,
+      "likely": 71447,
+      "upside": 133958,
     },
     "likely_winners": {
       "conservative": 6,
@@ -64,7 +64,7 @@ exports[`supplied-client audit > keeps every scenario valid, bounded, and reprod
     "incremental_modeled_value": {
       "conservative": 0,
       "likely": 0,
-      "upside": 297831,
+      "upside": 470217,
     },
     "likely_winners": {
       "conservative": 0,
@@ -81,9 +81,9 @@ exports[`supplied-client audit > keeps every scenario valid, bounded, and reprod
   {
     "company": "Thornfield & Co",
     "incremental_modeled_value": {
-      "conservative": 932357,
-      "likely": 2770871,
-      "upside": 5094026,
+      "conservative": 11997272,
+      "likely": 21437978,
+      "upside": 31891794,
     },
     "likely_winners": {
       "conservative": 8,

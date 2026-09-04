@@ -148,10 +148,38 @@ export function Outlook({
       (left, right) =>
         right.forecast.tests.likely - left.forecast.tests.likely,
     );
+  const funnelPageIds = new Set(
+    scenario.funnel?.enabled
+      ? scenario.funnel.stages.map((stage) => stage.page_id)
+      : [],
+  );
+  const terminalFunnelPage = scenario.funnel?.enabled
+    ? scenario.pages.find(
+        (page) =>
+          page.id === scenario.funnel?.stages.at(-1)?.page_id,
+      )
+    : undefined;
+  const funnelBasis = scenario.funnel?.enabled
+    ? `Joint funnel ${scenario.funnel.stages
+        .map(
+          (stage) =>
+            scenario.pages.find((page) => page.id === stage.page_id)?.name ??
+            stage.page_id,
+        )
+        .join(" → ")} at ${scenario.funnel.stages
+        .map((stage) => formatPercent(stage.transition_rate))
+        .join(" × ")}. ${
+        terminalFunnelPage ? describeValueModel(terminalFunnelPage) : ""
+      }`
+    : null;
   const valueBases = [
+    ...(funnelBasis ? [funnelBasis] : []),
     ...new Set(
       scenario.pages
-        .filter((page) => valuePerConversion(page) > 0)
+        .filter(
+          (page) =>
+            !funnelPageIds.has(page.id) && valuePerConversion(page) > 0,
+        )
         .map(describeValueModel),
     ),
   ];
@@ -331,6 +359,8 @@ export function Outlook({
 
       <ValueTrajectory
         points={forecast.value_trajectory}
+        composition={forecast.value_composition}
+        pages={scenario.pages}
         horizonDays={scenario.program.horizon_days}
         simulationRuns={forecast.simulation_runs}
       />
@@ -367,7 +397,7 @@ export function Outlook({
                 <li key={page.id}>
                   <span>{page.name}</span>
                   <strong>
-                    {valuePerConversion(page) > 0
+                    {pageForecast.incremental_value.upside > 0
                       ? formatCurrency(pageForecast.incremental_value.likely)
                       : "No direct value"}
                   </strong>
@@ -453,7 +483,7 @@ export function Outlook({
                       ) : null}
                     </td>
                     <td>
-                      {valuePerConversion(page) > 0
+                      {pageForecast.incremental_value.upside > 0
                         ? formatCurrency(pageForecast.incremental_value.likely)
                         : "Not modeled"}
                     </td>

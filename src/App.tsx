@@ -8,7 +8,7 @@ import {
 } from "./data/clients";
 import { buildForecast } from "./model/forecast";
 import { validateScenario } from "./model/statistics";
-import type { PageInput, ProgramInputs } from "./model/types";
+import type { FunnelConfig, PageInput, ProgramInputs } from "./model/types";
 
 export default function App() {
   const [selectedPresetId, setSelectedPresetId] = useState(DEFAULT_CLIENT_ID);
@@ -87,10 +87,22 @@ export default function App() {
   };
 
   const removePage = (pageId: string): void => {
-    updateScenario((current) => ({
-      ...current,
-      pages: current.pages.filter((page) => page.id !== pageId),
-    }));
+    updateScenario((current) => {
+      const stages =
+        current.funnel?.stages.filter((stage) => stage.page_id !== pageId) ?? [];
+      return {
+        ...current,
+        pages: current.pages.filter((page) => page.id !== pageId),
+        funnel:
+          current.funnel && stages.length >= 2
+            ? { ...current.funnel, stages }
+            : undefined,
+      };
+    });
+  };
+
+  const updateFunnel = (funnel: FunnelConfig | undefined): void => {
+    updateScenario((current) => ({ ...current, funnel }));
   };
 
   return (
@@ -107,6 +119,7 @@ export default function App() {
         }
         onProgramChange={updateProgram}
         onPageChange={updatePage}
+        onFunnelChange={updateFunnel}
         onAddPage={addPage}
         onRemovePage={removePage}
       />
