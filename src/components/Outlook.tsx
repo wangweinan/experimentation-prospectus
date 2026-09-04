@@ -1,5 +1,6 @@
 import { InfoTip } from "./InfoTip";
 import { Runway } from "./Runway";
+import { ValueTrajectory } from "./ValueTrajectory";
 import type {
   ClientScenario,
   ForecastResult,
@@ -181,7 +182,13 @@ export function Outlook({
               <strong>{formatInteger(execution.winners.likely)}</strong>
               <span>
                 likely wins
-                <InfoTip text="We run 10,000 possible years. This is the middle result after applying your test win-rate assumption." />
+                <InfoTip
+                  text={`The browser simulates this ${formatInteger(
+                    scenario.program.horizon_days,
+                  )}-day plan ${formatInteger(
+                    forecast.simulation_runs,
+                  )} times. Each completed test draws win or no win using your win-rate assumption. This is the middle result—not historical data.`}
+                />
               </span>
             </p>
             <p>
@@ -213,7 +220,9 @@ export function Outlook({
         <MetricStrand
           label="Likely wins"
           detail={`based on a ${formatPercent(scenario.program.win_rate, 0)} win rate`}
-          tooltip="Completed tests × your win-rate assumption, played out across 10,000 possible years. The large number is the middle outcome."
+          tooltip={`The browser runs ${formatInteger(
+            forecast.simulation_runs,
+          )} simulated versions of this plan. Each completed test draws win or no win using your win rate. The large number is the middle outcome.`}
           range={execution.winners}
           format={formatInteger}
         />
@@ -320,6 +329,12 @@ export function Outlook({
         </section>
       )}
 
+      <ValueTrajectory
+        points={forecast.value_trajectory}
+        horizonDays={scenario.program.horizon_days}
+        simulationRuns={forecast.simulation_runs}
+      />
+
       <Runway
         scenario={scenario}
         records={forecast.representative_timeline}
@@ -377,7 +392,11 @@ export function Outlook({
                 </th>
                 <th>
                   Likely winners
-                  <InfoTip text="The middle winner outcome across 10,000 possible years at your selected win rate." />
+                  <InfoTip
+                    text={`The middle winner outcome across ${formatInteger(
+                      forecast.simulation_runs,
+                    )} simulated versions of this plan at your selected win rate.`}
+                  />
                 </th>
                 <th>
                   Page lift
@@ -553,10 +572,12 @@ export function Outlook({
           <div>
             <h3>Likely range</h3>
             <p>
-              We play out {formatInteger(forecast.simulation_runs)} possible
-              years. “Likely” is the middle result; “conservative” and “upside”
-              show realistic lower and upper planning cases. They are not
-              guarantees.
+              The browser runs {formatInteger(forecast.simulation_runs)} seeded
+              simulations of this {formatDays(scenario.program.horizon_days)}{" "}
+              plan. Each simulation draws win or no win for completed tests.
+              “Likely” is the middle result; “conservative” and “upside” show
+              lower and upper planning cases. This is modeled uncertainty, not
+              historical data or a guarantee.
             </p>
           </div>
           <div>

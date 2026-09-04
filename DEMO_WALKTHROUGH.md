@@ -10,7 +10,8 @@ Use this as a talk track, not a script to read word-for-word.
 >
 > This planner starts with page-level traffic and conversion data, sizes tests
 > to 95% confidence and 80% power, fits those tests into a realistic launch
-> calendar, and plays out 10,000 possible years. The output is a range for
+> calendar, and simulates that plan 10,000 times. These are hypothetical
+> test-by-test paths, not historical years. The output is a range for
 > reliable tests, shipped wins, page-level conversion lift, and value—not a
 > promise based on a generic benchmark.”
 
@@ -43,9 +44,10 @@ These are seeded outputs. The same inputs produce the same results.
 | What the audience sees | Question it answers | Calculation behind it |
 | --- | --- | --- |
 | Giant reliable-test count | “How many valid tests can we actually run?” | Two-proportion sample size, real traffic, minimum runtime, page concurrency, and launch pace |
-| Conservative / likely / upside wins | “How many changes might ship?” | 10th / 50th / 90th percentiles from 10,000 winner paths |
+| Conservative / likely / upside wins | “How many changes might ship?” | 10th / 50th / 90th percentiles from 10,000 simulated planning paths |
 | Page lift | “How much better could this page become?” | Compounded shipped-win lift on that page only |
 | Likely added value | “What is the economic opportunity?” | Cumulative extra conversions after deployment × transparent value per conversion |
+| Cumulative value chart | “When could value appear, and how wide is the range?” | Pointwise P10 / P50 / P90 cumulative value across 10,000 simulated planning paths |
 | Traffic ceiling vs. plan | “Is traffic or team capacity the bottleneck?” | Continuous page-level testing compared with the launch-limited calendar |
 | Experiment runway | “When do tests run and wins launch?” | Representative median-like simulation path |
 | Client update rhythm | “What will we report every week/month?” | Cumulative completed tests, live tests, wins, and value at each reporting checkpoint |
@@ -65,15 +67,16 @@ Point to the giant `47`.
 
 Then point to `12 likely wins` and `$2.8M likely growth value`.
 
-> “At Thornfield’s 25% win-rate assumption, the middle simulated year has 12
+> “At Thornfield’s 25% win-rate assumption, the middle simulated path has 12
 > shipped wins. Value starts only after each winner completes and launches.”
 
 ### 2. Explain the range without saying “confidence interval”
 
 Point to conservative / likely / upside below a metric.
 
-> “I do not want one precise-looking promise. We play out 10,000 possible
-> winner sequences. ‘Likely’ is the middle result. ‘Conservative’ and ‘upside’
+> “I do not want one precise-looking promise. We simulate the selected 365-day
+> plan 10,000 times, drawing win or no win after each completed test. ‘Likely’
+> is the middle result. ‘Conservative’ and ‘upside’
 > are the 10th and 90th percentile planning cases. They are not statistical
 > confidence intervals and they are not guarantees.”
 
@@ -156,7 +159,20 @@ Point to Checkout lift.
 > revenue gains compound. The model accrues the full difference from the
 > original baseline for every day after deployment.”
 
-### 7. Show cadence changing the output
+### 7. Show the cumulative value paths
+
+Point to **How value builds after winners ship**.
+
+> “This is the same 10,000-path simulation shown over calendar time. At each
+> client checkpoint, I sort cumulative value across all paths. The light line is
+> the 10th percentile, the solid line is the median, and the dotted line is the
+> 90th percentile. The shaded region is the planning range.
+>
+> These are not three historical clients and the median line is not one literal
+> trial. They are pointwise estimates of the outcome distribution. All three
+> stay at zero until a winner can finish and launch.”
+
+### 8. Show cadence changing the output
 
 Scroll to **Client update rhythm** below the experiment runway.
 
@@ -172,7 +188,7 @@ Change **How often will you report?** from `14` to `30`.
 
 Reset the sample.
 
-### 8. Close with the opportunity views
+### 9. Close with the opportunity views
 
 Point to:
 
@@ -290,8 +306,14 @@ new page rate = current page rate × (1 + expected shipped-win lift)
 ```
 
 The next test is sized from that new rate, so win order can change later test
-duration. That path dependence is why the planner simulates full years instead
-of applying a simple binomial interval to a fixed test count.
+duration. That path dependence is why the planner simulates the complete
+planning horizon instead of applying a simple binomial interval to a fixed test
+count.
+
+For the chart, each simulated path also records cumulative value at day zero
+and every client readout checkpoint. At each day, the planner takes the 10th,
+50th, and 90th percentiles across the 10,000 values. The final chart values are
+therefore identical to the Low / Likely / High headline estimates.
 
 ### Compounded conversion and value
 
@@ -418,6 +440,13 @@ Winner order changes the compounded baseline; that can change the sample
 requirement for later tests and which page is available at a launch slot. A
 fixed-count binomial model misses that path dependence.
 
+### “Are the three chart lines actual simulated years?”
+
+No. The engine does run 10,000 hypothetical versions of the selected planning
+horizon, but the plotted lines are pointwise summaries across them: P10, P50,
+and P90 at each checkpoint. No historical customer data or historical years are
+being claimed.
+
 ### “Does a monthly readout force monthly tests?”
 
 No. Reporting cadence changes progress snapshots only. A test runs until it has
@@ -483,4 +512,3 @@ Then:
 4. practice changing launch pace, shipped-win lift, and reporting cadence;
 5. reset the sample between changes; and
 6. keep `README.md` and `RESEARCH_LOG.md` available for deeper questions.
-

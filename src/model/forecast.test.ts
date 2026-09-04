@@ -111,6 +111,17 @@ describe("buildForecast", () => {
     });
     expect(result.readouts[2].incremental_value).toBeCloseTo(70_000);
     expect(result.readouts.at(-1)?.incremental_value).toBeCloseTo(160_000);
+    expect(result.value_trajectory.map((point) => point.day)).toEqual([
+      0, 7, 14, 21, 28, 30,
+    ]);
+    expect(result.value_trajectory[0].value).toEqual({
+      conservative: 0,
+      likely: 0,
+      upside: 0,
+    });
+    expect(result.value_trajectory.at(-1)?.value).toEqual(
+      result.execution.incremental_value,
+    );
   });
 
   it("compounds later winners and prevents overlapping tests on a page", () => {

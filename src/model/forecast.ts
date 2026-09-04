@@ -16,6 +16,7 @@ import type {
   TestRecord,
   TestSizing,
   TrialResult,
+  ValueTrajectoryPoint,
 } from "./types";
 
 export const DEFAULT_SIMULATION_RUNS = 10_000;
@@ -44,6 +45,7 @@ interface MutablePageState {
   tests: number;
   winners: number;
   active: ActiveTest | null;
+  value_events: { day: number; value_per_day: number }[];
 }
 
 interface Candidate {
@@ -55,6 +57,7 @@ interface Candidate {
 interface SimulationBundle {
   summary: ForecastSummary;
   representative_timeline: TestRecord[];
+  value_trajectory: ValueTrajectoryPoint[];
 }
 
 function emptyRange(): Range {
@@ -87,6 +90,7 @@ function createPageStates(pages: PageInput[]): MutablePageState[] {
     tests: 0,
     winners: 0,
     active: null,
+    value_events: [],
   }));
 }
 
@@ -115,6 +119,13 @@ function completeTest(
     baselineAfter =
       active.baseline_before * (1 + state.input.expected_winner_lift);
     state.current_rate = baselineAfter;
+    state.value_events.push({
+      day: active.end_day,
+      value_per_day:
+        (baselineAfter - active.baseline_before) *
+        state.input.daily_visitors *
+        valuePerConversion(state.input),
+    });
   }
 
   if (timeline) {
@@ -136,6 +147,7 @@ function finishTrial(
   states: MutablePageState[],
   horizonDays: number,
   timeline: TestRecord[],
+  checkpointDays: number[],
 ): TrialResult {
   const pages: PageTrialResult[] = states.map((state) => {
     accrueIncrementalConversions(state, horizonDays);
@@ -168,6 +180,19 @@ function finishTrial(
     ),
     pages,
     timeline,
+    checkpoint_values: checkpointDays.map((day) =>
+      states.reduce(
+        (total, state) =>
+          total +
+          state.value_events.reduce(
+            (pageTotal, event) =>
+              pageTotal +
+              event.value_per_day * Math.max(0, day - event.day),
+            0,
+          ),
+        0,
+      ),
+    ),
   };
 }
 
@@ -176,6 +201,7 @@ function simulateExecutionTrial(
   random: RandomSource,
   resolveSizing: SizingResolver,
   captureTimeline: boolean,
+  checkpointDays: number[],
 ): TrialResult {
   const states = createPageStates(scenario.pages);
   const timeline = captureTimeline ? [] : null;
@@ -246,7 +272,7 @@ function simulateExecutionTrial(
   }
 
   completeThrough(horizon);
-  return finishTrial(states, horizon, timeline ?? []);
+  return finishTrial(states, horizon, timeline ?? [], checkpointDays);
 }
 
 function simulateCeilingTrial(
@@ -254,6 +280,7 @@ function simulateCeilingTrial(
   random: RandomSource,
   resolveSizing: SizingResolver,
   captureTimeline: boolean,
+  checkpointDays: number[],
 ): TrialResult {
   const states = createPageStates(scenario.pages);
   const timeline = captureTimeline ? [] : null;
@@ -280,7 +307,7 @@ function simulateCeilingTrial(
     }
   });
 
-  return finishTrial(states, horizon, timeline ?? []);
+  return finishTrial(states, horizon, timeline ?? [], checkpointDays);
 }
 
 function hashScenario(scenario: ClientScenario): number {
@@ -406,6 +433,7 @@ function runSimulation(
   salt: number,
   resolveSizing: SizingResolver,
   mode: "execution" | "ceiling",
+  checkpointDays: number[],
 ): SimulationBundle {
   const simulate =
     mode === "execution" ? simulateExecutionTrial : simulateCeilingTrial;
@@ -415,6 +443,7 @@ function runSimulation(
       mulberry32(mixSeed(baseSeed, salt, trialIndex)),
       resolveSizing,
       false,
+      checkpointDays,
     ),
   );
   const summary = summarizeTrials(trials, scenario.pages);
@@ -424,11 +453,18 @@ function runSimulation(
     mulberry32(mixSeed(baseSeed, salt, representativeIndex)),
     resolveSizing,
     true,
+    checkpointDays,
   );
 
   return {
     summary,
     representative_timeline: representative.timeline,
+    value_trajectory: checkpointDays.map((day, checkpointIndex) => ({
+      day,
+      value: summarizeRange(
+        trials.map((trial) => trial.checkpoint_values[checkpointIndex]),
+      ),
+    })),
   };
 }
 
@@ -440,10 +476,7 @@ function addToRange(range: Range, value: number): Range {
   };
 }
 
-export function buildReadoutCheckpoints(
-  scenario: ClientScenario,
-  timeline: TestRecord[],
-): ReadoutCheckpoint[] {
+function readoutDays(scenario: ClientScenario): number[] {
   const horizon = scenario.program.horizon_days;
   const cadence = scenario.program.reporting_cadence_days;
   const days: number[] = [];
@@ -451,6 +484,14 @@ export function buildReadoutCheckpoints(
     days.push(day);
   }
   days.push(horizon);
+  return days;
+}
+
+export function buildReadoutCheckpoints(
+  scenario: ClientScenario,
+  timeline: TestRecord[],
+): ReadoutCheckpoint[] {
+  const days = readoutDays(scenario);
 
   const pages = new Map(scenario.pages.map((page) => [page.id, page]));
   return days.map((day) => ({
@@ -496,6 +537,7 @@ export function buildForecast(
       traffic_ceiling: emptySummary(scenario.pages),
       representative_timeline: [],
       readouts: [],
+      value_trajectory: [],
       feasibility: [],
       baseline_value: 0,
       with_plan_value: emptyRange(),
@@ -523,6 +565,7 @@ export function buildForecast(
   };
 
   const baseSeed = hashScenario(scenario);
+  const trajectoryDays = [0, ...readoutDays(scenario)];
   const execution = runSimulation(
     scenario,
     simulationRuns,
@@ -530,6 +573,7 @@ export function buildForecast(
     EXECUTION_SALT,
     resolveSizing,
     "execution",
+    trajectoryDays,
   );
   const ceiling = runSimulation(
     scenario,
@@ -538,6 +582,7 @@ export function buildForecast(
     CEILING_SALT,
     resolveSizing,
     "ceiling",
+    [],
   );
   const baselineValue = scenario.pages.reduce(
     (total, page) =>
@@ -557,6 +602,7 @@ export function buildForecast(
       scenario,
       execution.representative_timeline,
     ),
+    value_trajectory: execution.value_trajectory,
     feasibility: assessPageFeasibility(scenario.pages, scenario.program),
     baseline_value: baselineValue,
     with_plan_value: addToRange(

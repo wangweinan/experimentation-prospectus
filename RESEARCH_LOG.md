@@ -51,6 +51,11 @@ Dollar inputs are excluded from the simulation’s random seed. If a value edit
 does not change page priority, it scales dollars without arbitrarily redrawing
 the same test and winner path.
 
+The simulation now retains cumulative value at every reporting checkpoint.
+The visualization plots pointwise P10/P50/P90 across all 10,000 paths, with a
+P10–P90 band. This is deliberately labeled as a simulated planning
+distribution, not historical evidence or three literal sample paths.
+
 ## Product decisions
 
 Decisions were made for an Account Executive operating the tool live with a
@@ -233,10 +238,10 @@ npm run build
 - 19 tests passed
 - 1 all-client snapshot written and re-verified
 - TypeScript checking passed
-- Vite production build passed (76.84 kB gzip JavaScript)
+- Vite production build passed
 - Chrome inspection covered 1440×1200 desktop, 390×844 mobile, and the full
   long-form page
-- Browser print produced a six-page, landscape Letter PDF with editing controls
+- Browser print produced a seven-page, landscape Letter PDF with editing controls
   removed
 - The initial low-contrast visual treatment was rejected after inspection and
   replaced by the two-ink ruled-information system documented above

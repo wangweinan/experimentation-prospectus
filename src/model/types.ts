@@ -96,6 +96,7 @@ export interface TrialResult {
   incremental_value: number;
   pages: PageTrialResult[];
   timeline: TestRecord[];
+  checkpoint_values: number[];
 }
 
 export interface Range {
@@ -128,11 +129,17 @@ export interface ReadoutCheckpoint {
   incremental_value: number;
 }
 
+export interface ValueTrajectoryPoint {
+  day: number;
+  value: Range;
+}
+
 export interface ForecastResult {
   execution: ForecastSummary;
   traffic_ceiling: ForecastSummary;
   representative_timeline: TestRecord[];
   readouts: ReadoutCheckpoint[];
+  value_trajectory: ValueTrajectoryPoint[];
   feasibility: PageFeasibility[];
   baseline_value: number;
   with_plan_value: Range;

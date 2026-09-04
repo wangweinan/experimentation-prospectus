@@ -6,6 +6,7 @@
   --ink-soft: #1f212fbf;
   --ink-faint: #1f212f85;
   --signal: #5a52ec;
+  --signal-dark: #3933a8;
   --signal-soft: #9fc0ff;
   --signal-wash: #d3ddf5;
   --danger: #d74843;
@@ -213,6 +214,19 @@ h2 {
   opacity: 1;
   transform: translateY(0);
   visibility: visible;
+}
+
+.planner-rail .field__label {
+  position: relative;
+}
+
+.planner-rail .field__label .info-tip {
+  position: static;
+}
+
+.planner-rail .field__label .info-tip::after {
+  right: auto;
+  left: 0;
 }
 
 .field {
@@ -849,6 +863,172 @@ h2 {
   font-size: clamp(2rem, 4vw, 4rem);
 }
 
+.trajectory-note {
+  margin: 0;
+  color: var(--ink-faint);
+  font-size: 0.7rem;
+  font-weight: 650;
+  line-height: 1.5;
+  text-align: right;
+}
+
+.trajectory-estimates {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 2.5rem;
+  border-block: 1px solid var(--rule);
+}
+
+.trajectory-estimates > div {
+  display: grid;
+  gap: 0.2rem;
+  padding: 1rem 1.2rem;
+  border-right: 1px solid var(--rule);
+}
+
+.trajectory-estimates > div:first-child {
+  padding-left: 0;
+}
+
+.trajectory-estimates > div:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.trajectory-estimates span {
+  color: var(--ink-faint);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.trajectory-estimates strong {
+  color: var(--ink);
+  font-size: clamp(1.5rem, 3vw, 2.8rem);
+  letter-spacing: -0.055em;
+}
+
+.trajectory-estimates small {
+  color: var(--ink-faint);
+  font-size: 0.65rem;
+}
+
+.trajectory-estimates__likely strong {
+  color: var(--signal);
+}
+
+.trajectory-scroll {
+  margin-top: 1rem;
+  overflow-x: auto;
+  border-radius: 1rem;
+  background: var(--paper-light);
+  box-shadow: inset 0 0 0 1px var(--rule-soft);
+  scrollbar-color: var(--signal-soft) transparent;
+}
+
+.trajectory-chart {
+  display: block;
+  width: 100%;
+  min-width: 48rem;
+  height: auto;
+}
+
+.trajectory-chart__grid {
+  stroke: var(--rule-soft);
+  stroke-width: 1;
+}
+
+.trajectory-chart__tick {
+  stroke: var(--ink-faint);
+  stroke-width: 1;
+}
+
+.trajectory-chart__axis-label {
+  fill: var(--ink-faint);
+  font-family: var(--sans);
+  font-size: 11px;
+}
+
+.trajectory-chart__band {
+  fill: color-mix(in srgb, var(--signal-wash) 68%, transparent);
+}
+
+.trajectory-chart__line {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.trajectory-chart__line--low {
+  stroke: var(--signal-soft);
+  stroke-dasharray: 5 6;
+  stroke-width: 2;
+}
+
+.trajectory-chart__line--likely {
+  stroke: var(--signal);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
+}
+
+.trajectory-chart__line--high {
+  stroke: var(--signal-dark);
+  stroke-dasharray: 2 6;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.trajectory-chart__point {
+  fill: var(--paper-light);
+  stroke: var(--signal);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.trajectory-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.4rem;
+  margin-top: 1rem;
+  color: var(--ink-soft);
+  font-size: 0.66rem;
+}
+
+.trajectory-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.trajectory-legend i {
+  width: 1.6rem;
+  height: 0;
+  border-top: 2px solid;
+}
+
+.trajectory-legend__low {
+  border-color: var(--signal-soft) !important;
+  border-style: dashed;
+}
+
+.trajectory-legend__likely {
+  border-color: var(--signal) !important;
+  border-width: 3px !important;
+}
+
+.trajectory-legend__high {
+  border-color: var(--signal-dark) !important;
+  border-style: dotted;
+}
+
+.trajectory-caption {
+  max-width: 52rem;
+  margin: 0.7rem 0 0;
+  color: var(--ink-faint);
+  font-size: 0.7rem;
+}
+
 .runway-legend {
   display: flex;
   flex-wrap: wrap;
@@ -1400,6 +1580,10 @@ h2 {
     justify-items: start;
   }
 
+  .planner-rail .field__label .info-tip::after {
+    width: min(13rem, calc(100vw - 4rem));
+  }
+
   .outlook-header h1 {
     align-items: flex-start;
     flex-direction: column;
@@ -1413,6 +1597,22 @@ h2 {
     align-items: flex-start;
     flex-direction: column;
     gap: 0.5rem;
+  }
+
+  .trajectory-estimates {
+    grid-template-columns: 1fr;
+  }
+
+  .trajectory-estimates > div,
+  .trajectory-estimates > div:first-child,
+  .trajectory-estimates > div:last-child {
+    padding: 0.9rem 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .trajectory-estimates > div:last-child {
+    border-bottom: 0;
   }
 
   .metric-spread {
@@ -1555,8 +1755,13 @@ h2 {
 
   .runway-scroll,
   .table-scroll,
-  .readout-scroll {
+  .readout-scroll,
+  .trajectory-scroll {
     overflow: visible;
+  }
+
+  .trajectory-chart {
+    min-width: 0;
   }
 
   .readout-strip article {

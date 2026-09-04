@@ -6,7 +6,6 @@ export function InfoTip({ text }: { text: string }) {
       role="note"
       aria-label={`How this works: ${text}`}
       data-tooltip={text}
-      title={text}
     >
       ?
     </span>

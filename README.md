@@ -42,9 +42,10 @@ profiles. An AE can:
 2. edit the README-defined program and page inputs;
 3. see conservative, likely, and upside outcomes update;
 4. walk through the 12-month experiment runway;
-5. compare page capacity with directly modeled value;
-6. open “How this is calculated” when a prospect wants the detail; and
-7. use the browser’s print dialog to save a client-ready PDF.
+5. show cumulative Low / Likely / High value paths over calendar time;
+6. compare page capacity with directly modeled value;
+7. open “How this is calculated” when a prospect wants the detail; and
+8. use the browser’s print dialog to save a client-ready PDF.
 
 The main experience uses plain business language. Statistical terms are kept in
 the methodology disclosure and this document.
@@ -159,8 +160,9 @@ That result is the **traffic-supported ceiling**, not the sales promise.
 
 ### 3. Model winner uncertainty
 
-The planner runs 10,000 seeded winner paths. The same inputs always yield the
-same result.
+The browser runs 10,000 seeded simulations of the selected planning horizon.
+These are hypothetical test-by-test paths, not historical years or client
+records. The same inputs always yield the same result.
 
 - Each completed test wins independently at the supplied win rate.
 - A winner delivers the editable shipped-win lift, which defaults to the page’s
@@ -172,6 +174,17 @@ same result.
 The main UI calls the 10th, 50th, and 90th percentiles **conservative**,
 **likely**, and **upside**. They are planning percentiles, not confidence
 intervals.
+
+The cumulative value chart calculates those percentiles independently at every
+client checkpoint and connects them over calendar time:
+
+- Low = pointwise P10
+- Likely = pointwise P50
+- High = pointwise P90
+
+The shaded band is the P10–P90 planning range. These curves summarize the
+simulation distribution; they are not three observed clients or three literal
+historical paths.
 
 ### 4. Count conversion value
 
